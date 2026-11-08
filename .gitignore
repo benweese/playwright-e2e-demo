@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.auth/
+playwright-report/
+test-results/
+blob-report/
+.playwright-cli/
+error-*.png
+error-*.log
+# Briefs are throwaway inputs; plans/ is kept (it is the test case record).
+briefs/
+.claude/settings.local.json
+.DS_Store
