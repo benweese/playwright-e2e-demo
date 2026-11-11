@@ -76,7 +76,7 @@ With [Claude Code](https://claude.com/claude-code) open in this repo, the plugin
 /playwright-qa-agents:author-tests the product search page and POST /api/searchProduct
 ```
 
-The agent writes a brief, maps the page, drafts a plan in `plans/` and **stops for review**. Once the plan is approved, it generates the spec, runs it, and repairs UI locators with a three-attempt budget. If the site disagrees with the plan, the test stays failing and the agent offers a bug report. It doesn't rewrite the assertion to match.
+The agent maps the page and drafts a plan in `plans/`: acceptance criteria first, then the scenarios that cover them. Then it **stops for review**. Once the plan is approved, it generates the spec, runs it, and repairs UI locators with a three-attempt budget. If the site disagrees with the plan, the test stays failing and the agent offers a bug report. It doesn't rewrite the assertion to match.
 
 ## License
 

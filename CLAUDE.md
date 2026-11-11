@@ -23,7 +23,6 @@ tests/api/<area>/        API specs
 tests/ui/locators|pages|specs|data/   UI layers (see "UI tests")
 plans/                   test plans, one per feature: the written test cases (committed)
 docs/pages/              page references written by the page-mapper agent (committed)
-briefs/                  throwaway inputs for the planner (git-ignored)
 ```
 
 ## Commands
@@ -207,14 +206,14 @@ There are no credentials to manage, and every run leaves the shared site as it f
 
 ## Plans: the written test cases
 
-`plans/<feature>.md` holds each scenario's steps and expected result. It is the human-readable record of what each test checks, so it's committed. Scenario ids (`AREA-001`) are assigned in the plan and reused in the test title. Keep plans in sync when tests change.
+`plans/<feature>.md` opens with numbered **acceptance criteria** (`AC-1`, `AC-2`, ...): what should be true, in testable statements. Then come the scenarios, each with its steps, its expected result and the criteria it covers (`**Covers:** AC-1, AC-3`). The plan is the human-readable record of what each test checks and why, so it's committed. Scenario ids (`AREA-001`) are assigned in the plan and reused in the test title. Keep plans in sync when tests change.
 
 ## Claude Code plugin
 
 `.claude/settings.json` enables `playwright-qa-agents` from the `benweese/playwright-ai-qa-agents` marketplace.
 
 ```
-author-tests skill:  brief → planner → YOU REVIEW → generator → run → (healer, UI only)
+author-tests skill:  description → planner → YOU REVIEW → generator → run → (healer, UI only)
 ```
 
 - `/playwright-qa-agents:author-tests <feature description, URL, or path to a requirements file>`
