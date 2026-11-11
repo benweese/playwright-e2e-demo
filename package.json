@@ -6,7 +6,7 @@
 	"author": "Ben Weese",
 	"license": "MIT",
 	"engines": {
-		"node": ">=20"
+		"node": ">=22.18"
 	},
 	"scripts": {
 		"test": "playwright test",
