@@ -27,14 +27,19 @@ docs/pages/              page references written by the page-mapper agent (commi
 
 ## Commands
 
+Run Playwright directly from the repo root, where `playwright.config.js` lives:
+
 ```bash
-npm test                                  # every project
-npm run test:smoke                        # quick "is it up" checks
-npm test -- --project=api --grep "PROD-004"
-npm test -- tests/ui/specs/cart.spec.js --headed
+npx playwright test                                      # every project
+npx playwright test --project=smoke                      # quick "is it up" checks
+npx playwright test --project=api --grep "PROD-004"
+npx playwright test tests/ui/specs/cart.spec.js --headed
+npx playwright test tests/api/products/products.spec.js --project=api --reporter=line
+npx playwright show-report                               # open the last HTML report
 npm run lint / npm run lint:fix
-npm run report                            # open the last HTML report
 ```
+
+`npm test`, `npm run test:smoke`, `npm run test:api`, `npm run test:ui` and `npm run report` are shortcuts for the same commands.
 
 ## Site quirks (read before writing a test)
 
@@ -129,7 +134,7 @@ test.describe("Products API", () => {
 ## JSON schema validation
 
 - `validateJsonSchema("products/productsList", body)` validates against `schemas/products/productsList.schema.json`, and also checks every date-like field.
-- **New endpoint:** run once with `{ update: true }` (or `UPDATE_SCHEMAS=true npm test -- --grep PROD-001`). That writes a strict schema from the real response. Review it, tighten it by hand (required fields, enums, formats), commit it, and remove the flag. Never commit `update: true`.
+- **New endpoint:** run once with `{ update: true }` (or `UPDATE_SCHEMAS=true npx playwright test --grep PROD-001`). That writes a strict schema from the real response. Review it, tighten it by hand (required fields, enums, formats), commit it, and remove the flag. Never commit `update: true`.
 - Schemas are strict: `additionalProperties: false` everywhere, so a new or renamed field fails until the schema is updated on purpose.
 
 ## Date validation
