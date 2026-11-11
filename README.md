@@ -35,7 +35,15 @@ npx playwright test --project=smoke    # is the site up
 npx playwright show-report             # open the HTML report
 ```
 
-You don't need accounts or credentials. The setup project creates a throwaway account through the API and deletes it at the end of the run.
+Needs Node 24 (see `.nvmrc`). You don't need accounts or credentials: the setup project creates a throwaway account through the API and deletes it at the end of the run.
+
+```bash
+npm run lint    # ESLint + TypeScript type-check + test id check
+```
+
+## Status
+
+The framework is in place: the smoke tests, the self-cleaning account setup, the API clients and the login page object. Feature tests are added with the agents (see [Writing tests with the agents](#writing-tests-with-the-agents)), each starting as a reviewed plan in `plans/`.
 
 ## What's worth a look
 
@@ -46,14 +54,14 @@ You don't need accounts or credentials. The setup project creates a throwaway ac
 | **Ads blocked at the network layer** | Full-page ad vignettes swallow clicks and make UI tests flaky. [`fixtures/test.ts`](fixtures/test.ts) aborts ad and tracking requests in every browser context, and lint makes sure no spec bypasses it.                                                                                                                                              |
 | **Layered UI tests**                 | Locators → page object → spec ([`tests/ui/`](tests/ui/)). Specs contain no selectors. Locators are `getBy*` only, with no XPath and no `.nth()`, and lint enforces it.                                                                                                                                                                                |
 | **Typed end to end**                 | Strict TypeScript throughout: typed API response bodies ([`api/types.ts`](api/types.ts)), typed request payloads, page objects typed by their locator factories, and typed imports from commons. Lint runs `tsc`, so a type error fails CI.                                                                                                           |
-| **Strict schemas**                   | Response schemas are generated from real responses, reviewed, and set to `additionalProperties: false`, so an unannounced API change fails a test. Date fields are checked on every validation.                                                                                                                                                       |
-| **Plans as test cases**              | Each feature has a written plan in [`plans/`](plans/). Every scenario has an id, a number unique across the repo (`#0012`), that appears in its test title, so a failing test leads straight to its steps and expected result. Tags (`@smoke`, `@api`, `@ui`), not ids, say what kind of test it is, and lint fails on a missing or duplicate id.     |
-| **CI**                               | Lint, format check and the full suite on every push, PR and a daily schedule, with the HTML report uploaded as an artifact.                                                                                                                                                                                                                           |
+| **Strict schemas**                   | API specs validate responses against schemas in `schemas/`, generated from real responses, reviewed, and set to `additionalProperties: false`, so an unannounced API change fails a test. Date fields are checked on every validation.                                                                                                                |
+| **Plans as test cases**              | Each feature gets a written plan in [`plans/`](plans/). Every scenario has an id, a number unique across the repo (`#0012`), that appears in its test title, so a failing test leads straight to its steps and expected result. Tags (`@smoke`, `@api`, `@ui`), not ids, say what kind of test it is, and lint fails on a missing or duplicate id.    |
+| **CI**                               | Lint (ESLint, type-check, test id check), format check and the full suite on every push, PR and a daily schedule, with the HTML report uploaded as an artifact.                                                                                                                                                                                       |
 
 ## Layout
 
 ```
-api/            API clients (one per area, extending ApiBase)
+api/            API clients (one per area, extending ApiBase) and response types
 config/         environments + the resolved config
 fixtures/       test/expect with ad blocking
 helpers/        site-specific helpers
@@ -65,6 +73,8 @@ tests/api/      @api specs
 tests/ui/       locators, pages, specs, data
 plans/          written test plans
 docs/pages/     page references used by the agents
+scripts/        check-test-ids.ts (part of npm run lint)
+.playwright/    playwright-cli settings, used by the agents
 ```
 
 [`CLAUDE.md`](CLAUDE.md) is the full guide to the repo's rules, which the AI agents also follow.

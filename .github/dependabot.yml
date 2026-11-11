@@ -1,0 +1,30 @@
+version: 2
+updates:
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: weekly
+      groups:
+          # Must stay on the same version (see CLAUDE.md, Dependencies).
+          playwright:
+              patterns: ["@playwright/test", "playwright"]
+          dev-tools:
+              patterns:
+                  [
+                      "eslint",
+                      "@eslint/*",
+                      "eslint-plugin-playwright",
+                      "typescript-eslint",
+                      "eslint-config-prettier",
+                      "prettier",
+                      "globals",
+                      "@types/*"
+                  ]
+      ignore:
+          # typescript-eslint supports TypeScript up to 6.x; move to 7 when it does.
+          - dependency-name: typescript
+            update-types: ["version-update:semver-major"]
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: weekly
