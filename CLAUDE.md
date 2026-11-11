@@ -27,12 +27,11 @@ fixtures/test.ts     `test` and `expect` for every spec, with ads blocked
 helpers/             expectResponseCode, readTestUser (exported from helpers/index.ts)
 payloads/            faker request builders, typed
 schemas/             JSON schemas for API responses                  (see schemas/CLAUDE.md)
-scripts/             check-test-ids.ts, run by npm run lint
 tests/smoke/         @smoke checks
 tests/setup/         account setup and teardown                      (see tests/setup/CLAUDE.md)
 tests/api/           API specs                                       (see tests/api/CLAUDE.md)
 tests/ui/            locators, pages, specs, data                    (see tests/ui/CLAUDE.md)
-plans/               test plans, the written test cases              (see plans/CLAUDE.md)
+plans/               test plans, local and git-ignored               (see plans/CLAUDE.md)
 docs/pages/          page references written by the page-mapper agent
 .playwright/         playwright-cli settings, used by the agents
 ```
@@ -58,7 +57,7 @@ npm run lint:fix
 
 - **Import `test` and `expect` from `fixtures/test`**, never from `@playwright/test`. The fixture blocks the site's ads and tracking scripts, which otherwise swallow clicks and stall page loads. Lint enforces this.
 - **Title:** `generateTestDescription({ id, description, tags })`. The `id` is the scenario's number from the plan: `#0012` in the plan is `id: 12` in code, and the title shows `#0012`. One plan scenario = one test, same id.
-- **Ids are unique numbers across the whole repo.** They say nothing about the area or kind of test. A new scenario takes the next number after the highest one in use (`npm run check:ids` prints it, and plans may hold numbers not generated yet). `npm run lint` fails on a missing or duplicate id, and on a spec with no `@smoke`, `@api` or `@ui` tag.
+- **Ids are unique numbers across the whole repo.** They say nothing about the area or kind of test. A new scenario takes the next number after the highest one in use (`npm run check:ids` prints it, and local plans may hold numbers not generated yet). `npm run lint` fails on a missing or duplicate id, and on a spec with no `@smoke`, `@api` or `@ui` tag.
 - **Tags say what kind of test it is:** from `TAGS`. Every test needs at least one of `@smoke`, `@api`, `@ui`, or it runs in no project. Add `@regression`, `@a11y` or `@slow` where they apply. Select by kind with `--grep @smoke`, never by an id range.
 - **No hardcoded URLs or data ids.** URLs come from `baseURL`/`config`; other shared values go in `config/index.ts`.
 - **Assert what the plan says should happen, not what you observe.** If the site disagrees with the plan, the test fails and the mismatch is reported. Never change an assertion to match a bug.
@@ -85,7 +84,7 @@ npm run lint:fix
 
 - Keep dependencies on their latest versions. Exceptions: **TypeScript is held at 6.x** until typescript-eslint supports 7, and **`playwright` is pinned to the same version as `@playwright/test`**. `@playwright/cli` (used by the agents' page-mapper) depends on a pre-release `playwright`; without the explicit `playwright` dev dependency, npm hoists that pre-release, `npx playwright test` runs it, and Playwright fails with "did not expect test() to be called here". When you upgrade `@playwright/test`, upgrade `playwright` to the same version.
 - **`minimatch` is overridden to 11.x** in `package.json` to fix [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249): ESLint and typescript-eslint still ask for 10.x, and every 10.x is affected. Remove the override once they require 11 themselves.
-- Node 22.18 or later: `npm run lint` runs a TypeScript script directly.
+- Node `^22.22.2 || >=24.15.0` (`engines` in `package.json`), the range `eslint-plugin-jsdoc` supports.
 
 ## Claude Code plugin
 

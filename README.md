@@ -29,7 +29,7 @@ The framework is in place: smoke tests, the self-cleaning account setup, typed A
 
 ## Requirements
 
-- Node 22.18 or later, which runs TypeScript scripts directly (CI uses the version in `.nvmrc`, currently 24)
+- Node 22.22.2+ on 22.x, or 24.15+ (the range the lint tools support; CI uses the version in `.nvmrc`, currently 24)
 - No accounts or credentials: the setup project creates a throwaway account through the API and deletes it at the end of the run
 
 ## Run it
@@ -63,16 +63,16 @@ For local debugging, copy `.env.example` to `.env` and set:
 
 ## What's worth a look
 
-|                                      |                                                                                                                                                                                                                                                                                                                                                       |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Self-cleaning auth**               | [`tests/setup/auth.setup.ts`](tests/setup/auth.setup.ts) creates an account via `POST /api/createAccount` with faker data, signs in through the UI and saves the session, so every `@ui` test starts logged in. [`auth.teardown.ts`](tests/setup/auth.teardown.ts) deletes the account and checks it's gone. The shared site is left as it was found. |
-| **An API that always says 200**      | The site's API answers HTTP 200 with a `text/html` content type, even for errors, and puts the real status in the body. [`helpers/apiResponse.ts`](helpers/apiResponse.ts) asserts on `responseCode` instead, so error cases are real tests rather than false passes.                                                                                 |
-| **Ads blocked at the network layer** | Full-page ad vignettes swallow clicks and make UI tests flaky. [`fixtures/test.ts`](fixtures/test.ts) aborts ad and tracking requests in every browser context, and lint makes sure no spec bypasses it.                                                                                                                                              |
-| **Layered UI tests**                 | Locators → page object → spec ([`tests/ui/`](tests/ui/)). Specs contain no selectors. Locators are `getBy*` only, with no XPath and no `.nth()`, and lint enforces it.                                                                                                                                                                                |
-| **Typed end to end**                 | Strict TypeScript throughout. API clients name each response body's type once ([`api/types.ts`](api/types.ts)), and Playwright's typed `APIResponse<T>` carries it into every assertion. Payloads, page objects and imports from commons are typed too. Lint runs `tsc`, so a type error fails CI.                                                    |
-| **Strict schemas**                   | API specs validate responses against schemas in `schemas/`, generated from real responses, reviewed, and set to `additionalProperties: false`, so an unannounced API change fails a test. Date fields are checked on every validation.                                                                                                                |
-| **Plans as test cases**              | Each feature gets a written plan in [`plans/`](plans/). Every scenario has an id, a number unique across the repo (`#0012`), that appears in its test title, so a failing test leads straight to its steps and expected result. Tags (`@smoke`, `@api`, `@ui`), not ids, say what kind of test it is, and lint fails on a missing or duplicate id.    |
-| **Documented code**                  | Every client method, page object method, locator factory, helper and payload builder has JSDoc, and lint fails on missing or mismatched docs.                                                                                                                                                                                                         |
+|                                      |                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Self-cleaning auth**               | [`tests/setup/auth.setup.ts`](tests/setup/auth.setup.ts) creates an account via `POST /api/createAccount` with faker data, signs in through the UI and saves the session, so every `@ui` test starts logged in. [`auth.teardown.ts`](tests/setup/auth.teardown.ts) deletes the account and checks it's gone. The shared site is left as it was found.                                  |
+| **An API that always says 200**      | The site's API answers HTTP 200 with a `text/html` content type, even for errors, and puts the real status in the body. [`helpers/apiResponse.ts`](helpers/apiResponse.ts) asserts on `responseCode` instead, so error cases are real tests rather than false passes.                                                                                                                  |
+| **Ads blocked at the network layer** | Full-page ad vignettes swallow clicks and make UI tests flaky. [`fixtures/test.ts`](fixtures/test.ts) aborts ad and tracking requests in every browser context, and lint makes sure no spec bypasses it.                                                                                                                                                                               |
+| **Layered UI tests**                 | Locators → page object → spec ([`tests/ui/`](tests/ui/)). Specs contain no selectors. Locators are `getBy*` only, with no XPath and no `.nth()`, and lint enforces it.                                                                                                                                                                                                                 |
+| **Typed end to end**                 | Strict TypeScript throughout. API clients name each response body's type once ([`api/types.ts`](api/types.ts)), and Playwright's typed `APIResponse<T>` carries it into every assertion. Payloads, page objects and imports from commons are typed too. Lint runs `tsc`, so a type error fails CI.                                                                                     |
+| **Strict schemas**                   | API specs validate responses against schemas in `schemas/`, generated from real responses, reviewed, and set to `additionalProperties: false`, so an unannounced API change fails a test. Date fields are checked on every validation.                                                                                                                                                 |
+| **Plans as test cases**              | Each feature starts as a written plan in `plans/` (a local working file, reviewed before any code is written). Every scenario has an id, a number unique across the repo (`#0012`), that appears in its test title and ties the test to the scenario it implements. Tags (`@smoke`, `@api`, `@ui`), not ids, say what kind of test it is, and lint fails on a missing or duplicate id. |
+| **Documented code**                  | Every client method, page object method, locator factory, helper and payload builder has JSDoc, and lint fails on missing or mismatched docs.                                                                                                                                                                                                                                          |
 
 ## Layout
 
@@ -87,9 +87,8 @@ tests/smoke/             @smoke checks
 tests/setup/             account create (setup) and delete (teardown)
 tests/api/               @api specs
 tests/ui/                locators, pages, specs and data for @ui tests
-plans/                   written test plans: acceptance criteria and scenarios
+plans/                   test plans (local and git-ignored, except plans/CLAUDE.md)
 docs/pages/              page references written by the page-mapper agent
-scripts/                 check-test-ids.ts, run by npm run lint
 .playwright/             playwright-cli settings, used by the agents
 .claude/settings.json    enables the playwright-qa-agents plugin
 ```
@@ -109,7 +108,7 @@ The agent maps the page and drafts a plan in `plans/`: acceptance criteria first
 ## Development
 
 ```bash
-npm run lint      # ESLint (incl. JSDoc rules) + TypeScript type-check + test id check
+npm run lint      # ESLint (incl. JSDoc rules) + TypeScript type-check + check-test-ids
 npm run lint:fix
 npm run format    # Prettier
 ```

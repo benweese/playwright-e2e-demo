@@ -6,7 +6,7 @@
 	"author": "Ben Weese",
 	"license": "MIT",
 	"engines": {
-		"node": ">=22.18"
+		"node": "^22.22.2 || >=24.15.0"
 	},
 	"scripts": {
 		"test": "playwright test",
@@ -17,11 +17,11 @@
 		"lint": "eslint . && tsc && npm run check:ids",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
-		"check:ids": "node scripts/check-test-ids.ts",
+		"check:ids": "check-test-ids",
 		"typecheck": "tsc"
 	},
 	"dependencies": {
-		"@benweese/playwright-test-commons": "github:benweese/playwright-test-commons#v0.5.1",
+		"@benweese/playwright-test-commons": "github:benweese/playwright-test-commons#v0.6.0",
 		"dayjs": "^1.11.23"
 	},
 	"devDependencies": {
