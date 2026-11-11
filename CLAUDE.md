@@ -55,6 +55,7 @@ npm run lint:fix
 ## Dependencies
 
 - Keep dependencies on their latest versions. Exceptions: **TypeScript stays on 6.x** until typescript-eslint supports 7, and **`playwright` is pinned to the same version as `@playwright/test`**. `@playwright/cli` (used by the agents' page-mapper) depends on a pre-release `playwright`; without the explicit `playwright` dev dependency, npm hoists that pre-release, `npx playwright test` runs it, and Playwright fails with "did not expect test() to be called here". When you upgrade `@playwright/test`, upgrade `playwright` to the same version.
+- **`minimatch` is overridden to 11.x** in `package.json` to fix [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249): ESLint and typescript-eslint still ask for 10.x, and every 10.x is affected. Remove the override once they require 11 themselves.
 
 ## Site quirks (read before writing a test)
 
