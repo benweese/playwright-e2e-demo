@@ -19,6 +19,8 @@ helpers/                 site-specific helpers (expectResponseCode, readTestUser
 payloads/                request body builders (faker), typed
 schemas/<area>/<name>.schema.json
 scripts/                 check-test-ids.ts (run by npm run lint)
+.claude/skills/playwright-cli/   Playwright's own skill for driving a browser with playwright-cli (vendored)
+.playwright/cli.config.json     playwright-cli settings (browser)
 tests/smoke/             @smoke checks
 tests/setup/             auth.setup.ts / auth.teardown.ts (create and delete the run's test account)
 tests/api/<area>/        API specs
@@ -55,6 +57,7 @@ npm run lint:fix
 ## Dependencies
 
 - Keep dependencies on their latest versions. Exceptions: **TypeScript stays on 6.x** until typescript-eslint supports 7, and **`playwright` is pinned to the same version as `@playwright/test`**. `@playwright/cli` (used by the agents' page-mapper) depends on a pre-release `playwright`; without the explicit `playwright` dev dependency, npm hoists that pre-release, `npx playwright test` runs it, and Playwright fails with "did not expect test() to be called here". When you upgrade `@playwright/test`, upgrade `playwright` to the same version.
+- **The `playwright-cli` skill** in `.claude/skills/playwright-cli/` comes from `@playwright/cli` and teaches agents its commands. Don't edit it. After upgrading `@playwright/cli`, run `npm run skills:update` to refresh it and commit the result.
 
 ## Site quirks (read before writing a test)
 
