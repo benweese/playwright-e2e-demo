@@ -18,8 +18,7 @@
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
 		"check:ids": "node scripts/check-test-ids.ts",
-		"typecheck": "tsc",
-		"skills:update": "playwright-cli install --skills"
+		"typecheck": "tsc"
 	},
 	"dependencies": {
 		"@benweese/playwright-test-commons": "github:benweese/playwright-test-commons#v0.3.0",
