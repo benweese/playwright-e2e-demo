@@ -137,7 +137,7 @@ test.describe("Products API", () => {
 ```
 
 - `pollUntil(() => Client.call(), (body) => condition)` for anything that settles over time; `body` has the client's type.
-- `timingCheck(() => Client.call(), maxAverageMs)` for response-time checks.
+- `timingCheck(() => Client.call(), maxAverageMs, { runs, warmup })` for response-time checks. It uses Playwright's `response.timing()`: each call is timed from request sent to last byte, so connection setup doesn't count, and one warm-up call is skipped by default. It returns `{ averageMs, durations, timeToFirstByte }`. The live site is shared and slow at times, so keep limits generous and tag timing tests `@slow`.
 
 ## JSON schema validation
 
