@@ -1,0 +1,99 @@
+# tests/ui/
+
+UI tests in three layers per page, plus optional data:
+
+```
+locators/<name>Locators.ts   a factory: (page: Page) => ({ ...locators }), plus its type
+pages/<Name>Page.ts          extends BasePage<NameLocators>; one documented method per user action
+specs/<name>.spec.ts         calls page methods and asserts; tag TAGS.UI
+data/<name>Data.ts           faker input, only if needed
+```
+
+Create them in that order. Reuse or extend an existing page object or spec for the same page.
+
+## Example
+
+`loginLocators` and `LoginPage` are real; `home.spec.ts` shows a spec for a `HomePage` you would add:
+
+```ts
+// tests/ui/locators/loginLocators.ts
+import type { Page } from "@playwright/test";
+
+/** Locators for /login; the inputs use the site's data-qa attributes. */
+export const loginLocators = (page: Page) => ({
+	emailInput: page.getByTestId("login-email"),
+	passwordInput: page.getByTestId("login-password"),
+	loginButton: page.getByTestId("login-button"),
+	loggedInAs: (name: string) => page.getByRole("listitem").filter({ hasText: `Logged in as ${name}` })
+});
+
+export type LoginLocators = ReturnType<typeof loginLocators>;
+
+// tests/ui/pages/LoginPage.ts
+import type { Page } from "@playwright/test";
+import { BasePage } from "@benweese/playwright-test-commons";
+import { loginLocators, type LoginLocators } from "../locators/loginLocators";
+
+/** The login and sign-up page, /login. */
+export class LoginPage extends BasePage<LoginLocators> {
+	constructor(page: Page) {
+		super(page, loginLocators);
+	}
+
+	/** Opens /login. */
+	async open() {
+		await this.goto("/login");
+	}
+
+	/**
+	 * Signs in through the login form.
+	 *
+	 * @param email - the account's email
+	 * @param password - the account's password
+	 */
+	async login(email: string, password: string) {
+		await this.fill(this.locators.emailInput, email);
+		await this.fill(this.locators.passwordInput, password);
+		await this.click(this.locators.loginButton);
+	}
+}
+
+// tests/ui/specs/home.spec.ts
+import { generateTestDescription, TAGS } from "@benweese/playwright-test-commons";
+import { test } from "../../../fixtures/test";
+import { HomePage } from "../pages/HomePage";
+
+test(
+	generateTestDescription({ id: 15, description: "shows the logged-in user", tags: [TAGS.UI] }),
+	async ({ page }) => {
+		const home = new HomePage(page);
+		await home.open();
+		await home.expectLoggedIn();
+	}
+);
+```
+
+## Page objects and specs
+
+- Specs never contain raw locators; they call page methods.
+- Page objects use `BasePage` methods (`this.goto`, `this.click`, `this.fill`, `this.expectVisible`, ...), not raw `locator.click()`, except for small things BasePage doesn't cover (like `press`). `this.goto("/path")`, never a full URL.
+- A helper every page could use, taking locators as arguments, belongs in `BasePage` (in commons). Anything with page-specific names goes on the page object.
+- Locator factories take `page: Page` and export their type (`ReturnType<typeof xLocators>`); page objects extend `BasePage<XLocators>`.
+- JSDoc on every locator factory and page object method (lint enforces it).
+
+## Locators (hard rule)
+
+- **The element you act on:** only `getByRole`, `getByLabel`, `getByText`, `getByPlaceholder`, `getByAltText`, `getByTitle`, `getByTestId`.
+- **`data-qa` attributes.** The site marks form controls with `data-qa="login-email"` and similar, and `testIdAttribute` is `data-qa`, so `page.getByTestId("login-email")` finds them. Prefer them where the control has no accessible label.
+- **No good locator on its own?** If the element can't be found uniquely and reliably by itself, find a good container first: the nearest meaningful parent that gives the element its context (a form, dialog, table row, card, list item, section or landmark). Locate the container the same way, e.g. `getByRole("dialog", { name })`, `getByRole("row").filter({ hasText })` or `getByRole("listitem").filter({ hasText })`, then locate the element inside it. `loggedInAs` in `loginLocators.ts` is an example.
+- **Never:** XPath, generated CSS class names, `.first()`/`.nth()`/`.last()` or `:nth-child`. Lint enforces the XPath and index rules.
+- If an element can't be found with the allowed methods, write the best allowed locator and put a comment above it:
+  `// Fixme: could not reliably locate <what>. Tried: <locators> — <why>. Needs <role/label/testid>.`
+
+## Logged in by default
+
+The `ui` project starts logged in as the run's test account (see `tests/setup/CLAUDE.md`).
+
+- `readTestUser()` from `helpers/` returns its `{ name, email, password }`.
+- A test that needs a logged-out page uses `test.use({ storageState: { cookies: [], origins: [] } })`.
+- Don't log out or delete the shared account in a test; other ui tests run with the same session. A test that needs its own account creates one with `Accounts.create(buildAccount())` and deletes it afterwards.

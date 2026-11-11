@@ -1,30 +1,40 @@
 # CLAUDE.md
 
-Playwright API and UI tests for https://automationexercise.com, a public practice shop, written in TypeScript. Read this before writing or changing any test.
+Playwright API and UI tests for https://automationexercise.com, a public practice shop, written in TypeScript.
+
+This file holds what applies everywhere. Each folder with its own rules has a `CLAUDE.md` of its own. **Before working in one of these folders, read its `CLAUDE.md`:**
+
+| Folder         | Read it for                                                                       |
+| -------------- | --------------------------------------------------------------------------------- |
+| `api/`         | API clients and response types; the API's quirks (always HTTP 200, form bodies)   |
+| `tests/api/`   | Writing API specs: status checks, schemas, dates, polling, response times         |
+| `schemas/`     | Generating, reviewing and updating JSON schemas                                   |
+| `tests/ui/`    | Writing UI tests: locators → page objects → specs, locator rules, being logged in |
+| `tests/setup/` | The account setup and teardown around the ui project                              |
+| `plans/`       | The plan format: acceptance criteria, scenario ids, coverage                      |
 
 The suite is built on two other repos:
 
 - **[playwright-test-commons](https://github.com/benweese/playwright-test-commons)** (`@benweese/playwright-test-commons`): `ApiBase`, `getBody`, `validateJsonSchema`, the date helpers, `BasePage`, `generateTestDescription`, `TAGS`, with type definitions. Installed from a git tag (`github:benweese/playwright-test-commons#v0.5.1`). Change it in that repo, tag a new version and install that tag here; never patch `node_modules`.
-- **[playwright-ai-qa-agents](https://github.com/benweese/playwright-ai-qa-agents)**: the `playwright-qa-agents` Claude Code plugin that plans, writes, runs and heals tests here (see "Claude Code plugin").
+- **[playwright-ai-qa-agents](https://github.com/benweese/playwright-ai-qa-agents)**: the `playwright-qa-agents` Claude Code plugin that plans, writes, runs and heals tests here.
 
 ## Layout
 
 ```
-api/                     one client class per API area, exported as a singleton
-api/types.ts             response body types (ProductList, UserDetail, ...)
-config/index.ts          exports `config` (site URLs, auth file paths); the only place tests read settings from
-fixtures/test.ts         `test` and `expect` for every spec (blocks the site's ads)
-helpers/                 site-specific helpers (expectResponseCode, readTestUser), exported from helpers/index.ts
-payloads/                request body builders (faker), typed
-schemas/<area>/<name>.schema.json
-scripts/                 check-test-ids.ts (run by npm run lint)
-.playwright/cli.config.json     playwright-cli settings (browser)
-tests/smoke/             @smoke checks
-tests/setup/             auth.setup.ts / auth.teardown.ts (create and delete the run's test account)
-tests/api/<area>/        API specs
-tests/ui/locators|pages|specs|data/   UI layers (see "UI tests")
-plans/                   test plans, one per feature: the written test cases (committed)
-docs/pages/              page references written by the page-mapper agent (committed)
+api/                 API clients and response types                  (see api/CLAUDE.md)
+config/index.ts      `config`: site URLs, debug switch, auth file paths; the only place tests read settings from
+fixtures/test.ts     `test` and `expect` for every spec, with ads blocked
+helpers/             expectResponseCode, readTestUser (exported from helpers/index.ts)
+payloads/            faker request builders, typed
+schemas/             JSON schemas for API responses                  (see schemas/CLAUDE.md)
+scripts/             check-test-ids.ts, run by npm run lint
+tests/smoke/         @smoke checks
+tests/setup/         account setup and teardown                      (see tests/setup/CLAUDE.md)
+tests/api/           API specs                                       (see tests/api/CLAUDE.md)
+tests/ui/            locators, pages, specs, data                    (see tests/ui/CLAUDE.md)
+plans/               test plans, the written test cases              (see plans/CLAUDE.md)
+docs/pages/          page references written by the page-mapper agent
+.playwright/         playwright-cli settings, used by the agents
 ```
 
 ## Commands
@@ -44,197 +54,38 @@ npm run lint:fix
 
 `npm test`, `npm run test:smoke`, `npm run test:api`, `npm run test:ui` and `npm run report` are shortcuts for the same commands.
 
+## Rules for every test
+
+- **Import `test` and `expect` from `fixtures/test`**, never from `@playwright/test`. The fixture blocks the site's ads and tracking scripts, which otherwise swallow clicks and stall page loads. Lint enforces this.
+- **Title:** `generateTestDescription({ id, description, tags })`. The `id` is the scenario's number from the plan: `#0012` in the plan is `id: 12` in code, and the title shows `#0012`. One plan scenario = one test, same id.
+- **Ids are unique numbers across the whole repo.** They say nothing about the area or kind of test. A new scenario takes the next number after the highest one in use (`npm run check:ids` prints it, and plans may hold numbers not generated yet). `npm run lint` fails on a missing or duplicate id, and on a spec with no `@smoke`, `@api` or `@ui` tag.
+- **Tags say what kind of test it is:** from `TAGS`. Every test needs at least one of `@smoke`, `@api`, `@ui`, or it runs in no project. Add `@regression`, `@a11y` or `@slow` where they apply. Select by kind with `--grep @smoke`, never by an id range.
+- **No hardcoded URLs or data ids.** URLs come from `baseURL`/`config`; other shared values go in `config/index.ts`.
+- **Assert what the plan says should happen, not what you observe.** If the site disagrees with the plan, the test fails and the mismatch is reported. Never change an assertion to match a bug.
+- **Soft assertions** (`expect.soft`) for property checks, so one run reports every failure. Hard `expect` only when later steps depend on the value.
+- **No fixed waits** (`waitForTimeout`) and no `networkidle`. Use web-first assertions, or `pollUntil` for eventually-consistent APIs.
+- **Shared public data.** Other people use the site too. Never assert on data you didn't create (e.g. "the cart is empty") unless the test set it up.
+- **Clean up what you create.** A test that creates data deletes it in a `finally` or `afterAll`.
+- **Extend, don't duplicate.** If a spec for the area exists, add to it.
+
 ## TypeScript
 
 - Everything is TypeScript with `strict` on. Playwright runs `.ts` directly; there is no build step. `npm run lint` runs `tsc` to type-check.
 - Relative imports have no extension: `import { config } from "../../config"`.
-- Type response bodies in the client, once. Add the shape to `api/types.ts` and name it in the client method: `this.get<ProductList>("productsList")`. Playwright types the response (`APIResponse<ProductList>`), so `expectResponseCode`, `getBody`, `pollUntil` and `response.json()` all return a `ProductList` without the spec naming it. Avoid `any`; lint warns on it.
-- Use `import type` for type-only imports (lint enforces it).
-- Locator factories take `page: Page`. Page objects extend `BasePage<XLocators>`, where `XLocators` is `ReturnType<typeof xLocators>` exported from the locators file.
+- Use `import type` for type-only imports (lint enforces it). Avoid `any`; lint warns on it.
+
+## Documentation
+
+- **JSDoc on reusable code.** Every client method, page object method, locator factory, helper, payload builder and fixture gets a JSDoc: one-line summary, `@param` for each parameter, `@returns`, `@throws` if it can throw, and an `@example` where usage isn't obvious. Lint enforces it in `api/`, `config/`, `fixtures/`, `helpers/`, `payloads/` and `tests/ui/locators|pages|data/`.
+- **Specs are documented by their titles and plans**, not by comments.
+- **Comments explain why, never what.** Keep a comment only for something the code can't say, such as a site quirk or a non-obvious choice.
+- **Folder `CLAUDE.md` files** hold the rules for their folder; this file holds what applies everywhere. Put a new rule in the most specific file it applies to.
 
 ## Dependencies
 
 - Keep dependencies on their latest versions. Exceptions: **TypeScript is held at 6.x** until typescript-eslint supports 7, and **`playwright` is pinned to the same version as `@playwright/test`**. `@playwright/cli` (used by the agents' page-mapper) depends on a pre-release `playwright`; without the explicit `playwright` dev dependency, npm hoists that pre-release, `npx playwright test` runs it, and Playwright fails with "did not expect test() to be called here". When you upgrade `@playwright/test`, upgrade `playwright` to the same version.
 - **`minimatch` is overridden to 11.x** in `package.json` to fix [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249): ESLint and typescript-eslint still ask for 10.x, and every 10.x is affected. Remove the override once they require 11 themselves.
-
-## Documentation
-
-- **JSDoc on reusable code.** Every client method, page object method, locator factory, helper, payload builder and fixture gets a JSDoc: one-line summary, `@param` for each parameter, `@returns`, `@throws` if it can throw, and an `@example` where usage isn't obvious. For a client method, say the endpoint and the `responseCode` to expect. Lint enforces it in `api/`, `config/`, `fixtures/`, `helpers/`, `payloads/` and `tests/ui/locators|pages|data/`.
-- **Specs are documented by their titles and plans**, not by comments.
-- **Comments explain why, never what.** Keep a comment only for something the code can't say, such as a site quirk or a non-obvious choice. Don't restate the code.
-
-## Site quirks (read before writing a test)
-
-- **The API always returns HTTP 200**, with a `text/html` content type, and puts the real status in the body: `{ "responseCode": 404, "message": "User not found!" }`. Use `expectResponseCode(response, code)` from `helpers/` for success and error cases alike. Commons' `errorCheck(response, 404)` would always fail here. `getBody` still works (it parses JSON whatever the content type), and `expectResponseCode` calls it.
-- **Request bodies are form-encoded.** Clients pass `bodyType: "form"` to `ApiBase`. The endpoint list is at https://automationexercise.com/api_list.
-- **Ads.** The site serves Google ads, including full-page vignettes that swallow clicks. `fixtures/test.ts` blocks ad and tracking hosts in every browser context, so **always import `test` and `expect` from `fixtures/test`**, never from `@playwright/test`. Lint enforces this.
-- **`data-qa` attributes.** Form controls carry `data-qa="login-email"` and similar. `testIdAttribute` is set to `data-qa`, so `page.getByTestId("login-email")` finds them. Prefer them where the control has no accessible label.
-- **Shared public data.** Other people use the site too. Never assert on data you didn't create (e.g. "the cart is empty") unless the test set it up.
-
-## Rules for every test
-
-- **Title:** `generateTestDescription({ id, description, tags })`. The `id` is the scenario's number from the plan: `#0012` in the plan is `id: 12` in code, and the title shows `#0012`. One plan scenario = one test, same id.
-- **Ids are unique numbers across the whole repo.** They say nothing about the area or kind of test. A new scenario takes the next number after the highest one in use (`npm run check:ids` prints it, and plans may hold numbers not generated yet). `npm run lint` fails on a missing or duplicate id, and on a spec with no `@smoke`, `@api` or `@ui` tag.
-- **Tags say what kind of test it is:** from `TAGS`. Every test needs at least one of `@smoke`, `@api`, `@ui`, or it runs in no project. Add `@regression`, `@a11y` or `@slow` where they apply. Use `npx playwright test --grep @smoke` to select by kind, never an id range.
-- **No hardcoded URLs or data ids.** URLs come from `baseURL`/`config`; other shared values go in `config/index.ts`.
-- **Assert what the plan says should happen, not what you observe.** If the site disagrees with the plan, the test fails and the mismatch is reported. Never change an assertion to match a bug.
-- **Soft assertions** (`expect.soft`) for property checks, so one run reports every failure. Hard `expect` only when later steps depend on the value.
-- **No fixed waits** (`waitForTimeout`) and no `networkidle`. Use web-first assertions, or `pollUntil` for eventually-consistent APIs.
-- **Clean up what you create.** A test that creates an account deletes it (`Accounts.remove`) in a `finally` or `afterAll`.
-- **Extend, don't duplicate.** If a spec for the area exists, add to it.
-
-## API tests
-
-A client per API area, extending `ApiBase`, exported as a singleton (see `api/AccountsClient.ts`, `api/ProductsClient.ts`). For example, a client to add for brands:
-
-```ts
-// api/BrandsClient.ts
-import { ApiBase } from "@benweese/playwright-test-commons";
-import { config } from "../config";
-import type { BrandList } from "./types";
-
-class BrandsClient extends ApiBase {
-	constructor() {
-		super({ baseUrl: config.apiBaseUrl, bodyType: "form", debug: config.debug });
-	}
-
-	list() {
-		return this.get<BrandList>("brandsList");
-	}
-}
-
-export const Brands = new BrandsClient();
-```
-
-A spec calls clients and helpers, then asserts. For example, a products spec:
-
-```ts
-// tests/api/products/products.spec.ts
-import { generateTestDescription, TAGS, validateJsonSchema } from "@benweese/playwright-test-commons";
-import { test, expect } from "../../../fixtures/test";
-import { Products } from "../../../api/ProductsClient";
-import { expectResponseCode } from "../../../helpers";
-
-test.describe("Products API", () => {
-	test(
-		generateTestDescription({ id: 12, description: "lists all products", tags: [TAGS.API, TAGS.REGRESSION] }),
-		async () => {
-			const body = await expectResponseCode(await Products.list(), 200); // a ProductList
-			await validateJsonSchema("products/productsList", body);
-		}
-	);
-
-	test(
-		generateTestDescription({ id: 13, description: "search finds matching products", tags: [TAGS.API] }),
-		async () => {
-			const body = await expectResponseCode(await Products.search("top"), 200);
-			for (const product of body.products) {
-				expect.soft(product.name.toLowerCase()).toContain("top");
-			}
-		}
-	);
-
-	test(
-		generateTestDescription({ id: 14, description: "POST to productsList is not supported", tags: [TAGS.API] }),
-		async () => {
-			await expectResponseCode(await Products.post("productsList"), 405);
-		}
-	);
-});
-```
-
-- `pollUntil(() => Client.call(), (body) => condition)` for anything that settles over time; `body` has the client's type.
-- `timingCheck(() => Client.call(), maxAverageMs, { runs, warmup })` for response-time checks. It uses Playwright's `response.timing()`: each call is timed from request sent to last byte, so connection setup doesn't count, and one warm-up call is skipped by default. It returns `{ averageMs, durations, timeToFirstByte }`. The live site is shared and slow at times, so keep limits generous and tag timing tests `@slow`.
-
-## JSON schema validation
-
-- `validateJsonSchema("products/productsList", body)` validates against `schemas/products/productsList.schema.json`, and also checks every date-like field.
-- **New endpoint:** run once with `{ update: true }` (or `UPDATE_SCHEMAS=true npx playwright test --grep "<test id>"`). That writes a strict schema from the real response. Review it, tighten it by hand (required fields, enums, formats), commit it, and remove the flag. Never commit `update: true`.
-- Schemas are strict: `additionalProperties: false` everywhere, so a new or renamed field fails until the schema is updated on purpose.
-
-## Date validation
-
-- Automatic: every `validateJsonSchema` call checks fields whose key ends in `At`/`Date`/`_at`/`_date` (or is `date`, `timestamp`) are valid ISO 8601 dates, rejecting impossible dates like `2026-02-30`.
-- Direct: `isIsoDate(value)`, `expectValidDate(value, { format })`, `expectDateBetween(value, from, to)`, `expectSortedByDate(items, key, "desc" | "asc")`.
-
-## UI tests
-
-Three layers per page, plus optional data. `loginLocators` and `LoginPage` are real; `home.spec.ts` shows a spec for a `HomePage` you would add:
-
-```ts
-// tests/ui/locators/loginLocators.ts
-import type { Page } from "@playwright/test";
-
-export const loginLocators = (page: Page) => ({
-	emailInput: page.getByTestId("login-email"),
-	passwordInput: page.getByTestId("login-password"),
-	loginButton: page.getByTestId("login-button"),
-	loggedInAs: (name: string) => page.getByRole("listitem").filter({ hasText: `Logged in as ${name}` })
-});
-
-export type LoginLocators = ReturnType<typeof loginLocators>;
-
-// tests/ui/pages/LoginPage.ts
-import type { Page } from "@playwright/test";
-import { BasePage } from "@benweese/playwright-test-commons";
-import { loginLocators, type LoginLocators } from "../locators/loginLocators";
-
-export class LoginPage extends BasePage<LoginLocators> {
-	constructor(page: Page) {
-		super(page, loginLocators);
-	}
-
-	async open() {
-		await this.goto("/login");
-	}
-
-	async login(email: string, password: string) {
-		await this.fill(this.locators.emailInput, email);
-		await this.fill(this.locators.passwordInput, password);
-		await this.click(this.locators.loginButton);
-	}
-}
-
-// tests/ui/specs/home.spec.ts
-import { generateTestDescription, TAGS } from "@benweese/playwright-test-commons";
-import { test } from "../../../fixtures/test";
-import { HomePage } from "../pages/HomePage";
-
-test(
-	generateTestDescription({ id: 15, description: "shows the logged-in user", tags: [TAGS.UI] }),
-	async ({ page }) => {
-		const home = new HomePage(page);
-		await home.open();
-		await home.expectLoggedIn();
-	}
-);
-```
-
-- Specs never contain raw locators; they call page methods.
-- Page objects use `BasePage` methods (`this.click`, `this.fill`, `this.expectVisible`, ...), not raw `locator.click()`, except for small things BasePage doesn't cover (like `press`).
-- A helper every page could use, taking locators as arguments, belongs in `BasePage` (in commons). Anything with page-specific names goes on the page object.
-
-## Locators (hard rule)
-
-- **The element you act on:** only `getByRole`, `getByLabel`, `getByText`, `getByPlaceholder`, `getByAltText`, `getByTitle`, `getByTestId` (which reads `data-qa` here).
-- **No good locator on its own?** If the element can't be found uniquely and reliably by itself, find a good container first: the nearest meaningful parent that gives the element its context (a form, dialog, table row, card, list item, section or landmark). Locate the container the same way, e.g. `getByRole("dialog", { name })`, `getByRole("row").filter({ hasText })` or `getByRole("listitem").filter({ hasText })`, then locate the element inside it. `loggedInAs` in `loginLocators.ts` is an example.
-- **Never:** XPath, generated CSS class names, `.first()`/`.nth()`/`.last()` or `:nth-child`. Lint enforces the XPath and index rules.
-- If an element can't be found with the allowed methods, write the best allowed locator and put a comment above it:
-  `// Fixme: could not reliably locate <what>. Tried: <locators> — <why>. Needs <role/label/testid>.`
-
-## Auth
-
-The `ui` project starts logged in:
-
-1. **`setup`** (`tests/setup/auth.setup.ts`) creates a fresh account through `POST /api/createAccount` with faker data, signs in through `LoginPage`, and saves the session to `.auth/state.json`. It also saves the credentials to `.auth/user.json`.
-2. **`ui`** depends on `setup` and uses that `storageState`. Call `readTestUser()` from `helpers/` to get `{ name, email, password }`.
-3. **`teardown`** (`tests/setup/auth.teardown.ts`) deletes the account and `.auth/` after `ui` finishes.
-
-There are no credentials to manage, and every run leaves the shared site as it found it. A test that needs a logged-out page uses `test.use({ storageState: { cookies: [], origins: [] } })`.
-
-## Plans: the written test cases
-
-`plans/<feature>.md` opens with numbered **acceptance criteria** (`AC-1`, `AC-2`, ...): what should be true, in testable statements. Then come the scenarios, each with its steps, its expected result and the criteria it covers (`**Covers:** AC-1, AC-3`). The plan is the human-readable record of what each test checks and why, so it's committed. Scenario ids (`#0012`) are assigned in the plan, unique across the repo, and reused in the test title. Keep plans in sync when tests change.
+- Node 22.18 or later: `npm run lint` runs a TypeScript script directly.
 
 ## Claude Code plugin
 
@@ -245,9 +96,10 @@ author-tests skill:  description → planner → YOU REVIEW → generator → ru
 ```
 
 - `/playwright-qa-agents:author-tests <feature description, URL, or path to a requirements file>`
-- `/playwright-qa-agents:run-spec <spec path | project | --grep id>`
+- `/playwright-qa-agents:run-spec <spec path | project | test id>`
 - `/playwright-qa-agents:check [fix]` – lint
 - `/playwright-qa-agents:bug-report <description>` – writes a bug report to `bugs/`
+- `/playwright-qa-agents:update-docs [path]` – brings READMEs, `CLAUDE.md` files and JSDoc up to date
 
 ## Git
 

@@ -94,7 +94,7 @@ scripts/                 check-test-ids.ts, run by npm run lint
 .claude/settings.json    enables the playwright-qa-agents plugin
 ```
 
-[`CLAUDE.md`](CLAUDE.md) is the full guide to the repo's rules, which the AI agents also follow.
+[`CLAUDE.md`](CLAUDE.md) holds the rules that apply everywhere, for people and the AI agents alike. Folders with their own rules have a `CLAUDE.md` of their own ([`api/`](api/CLAUDE.md), [`tests/api/`](tests/api/CLAUDE.md), [`schemas/`](schemas/CLAUDE.md), [`tests/ui/`](tests/ui/CLAUDE.md), [`tests/setup/`](tests/setup/CLAUDE.md), [`plans/`](plans/CLAUDE.md)). Claude Code loads a folder's file only when it works in that folder, so every session starts with half the instructions to read.
 
 ## Writing tests with the agents
 
