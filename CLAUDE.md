@@ -4,7 +4,7 @@ Playwright API and UI tests for https://automationexercise.com, a public practic
 
 The suite is built on two other repos:
 
-- **[playwright-test-commons](https://github.com/benweese/playwright-test-commons)** (`@benweese/playwright-test-commons`): `ApiBase`, `getBody`, `validateJsonSchema`, the date helpers, `BasePage`, `generateTestDescription`, `TAGS`, with type definitions. Installed from a GitHub Release. Change it in that repo, release a new version and bump it here; never patch `node_modules`.
+- **[playwright-test-commons](https://github.com/benweese/playwright-test-commons)** (`@benweese/playwright-test-commons`): `ApiBase`, `getBody`, `validateJsonSchema`, the date helpers, `BasePage`, `generateTestDescription`, `TAGS`, with type definitions. Installed from a git tag (`github:benweese/playwright-test-commons#v0.5.1`). Change it in that repo, tag a new version and install that tag here; never patch `node_modules`.
 - **[playwright-ai-qa-agents](https://github.com/benweese/playwright-ai-qa-agents)**: the `playwright-qa-agents` Claude Code plugin that plans, writes, runs and heals tests here (see "Claude Code plugin").
 
 ## Layout
@@ -54,7 +54,7 @@ npm run lint:fix
 
 ## Dependencies
 
-- Keep dependencies on their latest versions. Exceptions: **TypeScript stays on 6.x** until typescript-eslint supports 7, and **`playwright` is pinned to the same version as `@playwright/test`**. `@playwright/cli` (used by the agents' page-mapper) depends on a pre-release `playwright`; without the explicit `playwright` dev dependency, npm hoists that pre-release, `npx playwright test` runs it, and Playwright fails with "did not expect test() to be called here". When you upgrade `@playwright/test`, upgrade `playwright` to the same version.
+- Keep dependencies on their latest versions. Exceptions: **TypeScript is held at 6.x** until typescript-eslint supports 7, and **`playwright` is pinned to the same version as `@playwright/test`**. `@playwright/cli` (used by the agents' page-mapper) depends on a pre-release `playwright`; without the explicit `playwright` dev dependency, npm hoists that pre-release, `npx playwright test` runs it, and Playwright fails with "did not expect test() to be called here". When you upgrade `@playwright/test`, upgrade `playwright` to the same version.
 - **`minimatch` is overridden to 11.x** in `package.json` to fix [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249): ESLint and typescript-eslint still ask for 10.x, and every 10.x is affected. Remove the override once they require 11 themselves.
 
 ## Documentation
@@ -85,7 +85,7 @@ npm run lint:fix
 
 ## API tests
 
-A client per API area, extending `ApiBase`, exported as a singleton (see `api/AccountsClient.ts`, `api/ProductsClient.ts`):
+A client per API area, extending `ApiBase`, exported as a singleton (see `api/AccountsClient.ts`, `api/ProductsClient.ts`). For example, a client to add for brands:
 
 ```ts
 // api/BrandsClient.ts
@@ -106,7 +106,7 @@ class BrandsClient extends ApiBase {
 export const Brands = new BrandsClient();
 ```
 
-A spec calls clients and helpers, then asserts:
+A spec calls clients and helpers, then asserts. For example, a products spec:
 
 ```ts
 // tests/api/products/products.spec.ts
@@ -159,7 +159,7 @@ test.describe("Products API", () => {
 
 ## UI tests
 
-Three layers per page, plus optional data. `LoginPage` is the working example:
+Three layers per page, plus optional data. `loginLocators` and `LoginPage` are real; `home.spec.ts` shows a spec for a `HomePage` you would add:
 
 ```ts
 // tests/ui/locators/loginLocators.ts
