@@ -30,12 +30,12 @@ docs/pages/              page references written by the page-mapper agent (commi
 Run Playwright directly from the repo root, where `playwright.config.js` lives:
 
 ```bash
-npx playwright test                                      # every project
-npx playwright test --project=smoke                      # quick "is it up" checks
-npx playwright test --project=api --grep "PROD-004"
-npx playwright test tests/ui/specs/cart.spec.js --headed
-npx playwright test tests/api/products/products.spec.js --project=api --reporter=line
-npx playwright show-report                               # open the last HTML report
+npx playwright test                                         # every project
+npx playwright test --project=smoke                         # quick "is it up" checks
+npx playwright test --grep "SMOKE-002"                      # one test, by its scenario id
+npx playwright test tests/smoke/site-up.spec.js --headed    # one file, in a visible browser
+npx playwright test --project=api --reporter=line           # one project, compact output
+npx playwright show-report                                  # open the last HTML report
 npm run lint / npm run lint:fix
 ```
 
@@ -134,7 +134,7 @@ test.describe("Products API", () => {
 ## JSON schema validation
 
 - `validateJsonSchema("products/productsList", body)` validates against `schemas/products/productsList.schema.json`, and also checks every date-like field.
-- **New endpoint:** run once with `{ update: true }` (or `UPDATE_SCHEMAS=true npx playwright test --grep PROD-001`). That writes a strict schema from the real response. Review it, tighten it by hand (required fields, enums, formats), commit it, and remove the flag. Never commit `update: true`.
+- **New endpoint:** run once with `{ update: true }` (or `UPDATE_SCHEMAS=true npx playwright test --grep "<test id>"`). That writes a strict schema from the real response. Review it, tighten it by hand (required fields, enums, formats), commit it, and remove the flag. Never commit `update: true`.
 - Schemas are strict: `additionalProperties: false` everywhere, so a new or renamed field fails until the schema is updated on purpose.
 
 ## Date validation

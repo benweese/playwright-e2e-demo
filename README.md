@@ -30,9 +30,9 @@ git clone https://github.com/benweese/playwright-e2e-demo.git
 cd playwright-e2e-demo
 npm ci
 npx playwright install chromium
-npm test              # all projects
-npm run test:smoke    # is the site up
-npm run report        # open the HTML report
+npx playwright test                    # all projects
+npx playwright test --project=smoke    # is the site up
+npx playwright show-report             # open the HTML report
 ```
 
 You don't need accounts or credentials. The setup project creates a throwaway account through the API and deletes it at the end of the run.
