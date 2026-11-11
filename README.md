@@ -53,7 +53,7 @@ The framework is in place: the smoke tests, the self-cleaning account setup, the
 | **An API that always says 200**      | The site's API answers HTTP 200 with a `text/html` content type, even for errors, and puts the real status in the body. [`helpers/apiResponse.ts`](helpers/apiResponse.ts) asserts on `responseCode` instead, so error cases are real tests rather than false passes.                                                                                 |
 | **Ads blocked at the network layer** | Full-page ad vignettes swallow clicks and make UI tests flaky. [`fixtures/test.ts`](fixtures/test.ts) aborts ad and tracking requests in every browser context, and lint makes sure no spec bypasses it.                                                                                                                                              |
 | **Layered UI tests**                 | Locators → page object → spec ([`tests/ui/`](tests/ui/)). Specs contain no selectors. Locators are `getBy*` only, with no XPath and no `.nth()`, and lint enforces it.                                                                                                                                                                                |
-| **Typed end to end**                 | Strict TypeScript throughout: typed API response bodies ([`api/types.ts`](api/types.ts)), typed request payloads, page objects typed by their locator factories, and typed imports from commons. Lint runs `tsc`, so a type error fails CI.                                                                                                           |
+| **Typed end to end**                 | Strict TypeScript throughout: API clients name each response body's type once ([`api/types.ts`](api/types.ts)) and Playwright's typed `APIResponse<T>` carries it into every assertion, typed request payloads, page objects typed by their locator factories, and typed imports from commons. Lint runs `tsc`, so a type error fails CI.             |
 | **Strict schemas**                   | API specs validate responses against schemas in `schemas/`, generated from real responses, reviewed, and set to `additionalProperties: false`, so an unannounced API change fails a test. Date fields are checked on every validation.                                                                                                                |
 | **Plans as test cases**              | Each feature gets a written plan in [`plans/`](plans/). Every scenario has an id, a number unique across the repo (`#0012`), that appears in its test title, so a failing test leads straight to its steps and expected result. Tags (`@smoke`, `@api`, `@ui`), not ids, say what kind of test it is, and lint fails on a missing or duplicate id.    |
 | **CI**                               | Lint (ESLint, type-check, test id check), format check and the full suite on every push, PR and a daily schedule, with the HTML report uploaded as an artifact.                                                                                                                                                                                       |
@@ -62,7 +62,7 @@ The framework is in place: the smoke tests, the self-cleaning account setup, the
 
 ```
 api/            API clients (one per area, extending ApiBase) and response types
-config/         environments + the resolved config
+config/         site URLs and settings
 fixtures/       test/expect with ad blocking
 helpers/        site-specific helpers
 payloads/       faker request builders

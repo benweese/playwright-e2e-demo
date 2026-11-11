@@ -1,6 +1,7 @@
 import { ApiBase } from "@benweese/playwright-test-commons";
 import { config } from "../config";
 import type { Account } from "../payloads/accountPayload";
+import type { ApiEnvelope, UserDetail } from "./types";
 
 /** Account endpoints (APIs 11–14 on https://automationexercise.com/api_list). Form-encoded bodies. */
 class AccountsClient extends ApiBase {
@@ -9,23 +10,23 @@ class AccountsClient extends ApiBase {
 	}
 
 	create(account: Account) {
-		return this.post("createAccount", account);
+		return this.post<ApiEnvelope>("createAccount", account);
 	}
 
 	verifyLogin(email: string, password: string) {
-		return this.post("verifyLogin", { email, password });
+		return this.post<ApiEnvelope>("verifyLogin", { email, password });
 	}
 
 	getByEmail(email: string) {
-		return this.get("getUserDetailByEmail", { email });
+		return this.get<UserDetail>("getUserDetailByEmail", { email });
 	}
 
 	update(account: Account) {
-		return this.put("updateAccount", account);
+		return this.put<ApiEnvelope>("updateAccount", account);
 	}
 
 	remove(email: string, password: string) {
-		return this.delete("deleteAccount", { email, password });
+		return this.delete<ApiEnvelope>("deleteAccount", { email, password });
 	}
 }
 

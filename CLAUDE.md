@@ -12,8 +12,7 @@ The suite is built on two other repos:
 ```
 api/                     one client class per API area, exported as a singleton
 api/types.ts             response body types (ProductList, UserDetail, ...)
-config/environments.ts   per-environment values (TEST_ENV picks one; only "prod" exists)
-config/index.ts          exports `config`; the only place tests read settings from
+config/index.ts          exports `config` (site URLs, auth file paths); the only place tests read settings from
 fixtures/test.ts         `test` and `expect` for every spec (blocks the site's ads)
 helpers/                 site-specific helpers (expectResponseCode, readTestUser), exported from helpers/index.ts
 payloads/                request body builders (faker), typed
@@ -49,7 +48,7 @@ npm run lint:fix
 
 - Everything is TypeScript with `strict` on. Playwright runs `.ts` directly; there is no build step. `npm run lint` runs `tsc` to type-check.
 - Relative imports have no extension: `import { config } from "../../config"`.
-- Type response bodies. Add the shape to `api/types.ts` and pass it to the helper: `expectResponseCode<ProductList>(response, 200)`. Avoid `any`; lint warns on it.
+- Type response bodies in the client, once. Add the shape to `api/types.ts` and name it in the client method: `this.get<ProductList>("productsList")`. Playwright types the response (`APIResponse<ProductList>`), so `expectResponseCode`, `getBody`, `pollUntil` and `response.json()` all return a `ProductList` without the spec naming it. Avoid `any`; lint warns on it.
 - Use `import type` for type-only imports (lint enforces it).
 - Locator factories take `page: Page`. Page objects extend `BasePage<XLocators>`, where `XLocators` is `ReturnType<typeof xLocators>` exported from the locators file.
 
@@ -70,11 +69,10 @@ npm run lint:fix
 - **Title:** `generateTestDescription({ id, description, tags })`. The `id` is the scenario's number from the plan: `#0012` in the plan is `id: 12` in code, and the title shows `#0012`. One plan scenario = one test, same id.
 - **Ids are unique numbers across the whole repo.** They say nothing about the area or kind of test. A new scenario takes the next number after the highest one in use (`npm run check:ids` prints it, and plans may hold numbers not generated yet). `npm run lint` fails on a missing or duplicate id, and on a spec with no `@smoke`, `@api` or `@ui` tag.
 - **Tags say what kind of test it is:** from `TAGS`. Every test needs at least one of `@smoke`, `@api`, `@ui`, or it runs in no project. Add `@regression`, `@a11y` or `@slow` where they apply. Use `npx playwright test --grep @smoke` to select by kind, never an id range.
-- **No hardcoded URLs or data ids.** URLs come from `baseURL`/`config`; per-environment values go in `config/environments.ts`.
+- **No hardcoded URLs or data ids.** URLs come from `baseURL`/`config`; other shared values go in `config/index.ts`.
 - **Assert what the plan says should happen, not what you observe.** If the site disagrees with the plan, the test fails and the mismatch is reported. Never change an assertion to match a bug.
 - **Soft assertions** (`expect.soft`) for property checks, so one run reports every failure. Hard `expect` only when later steps depend on the value.
 - **No fixed waits** (`waitForTimeout`) and no `networkidle`. Use web-first assertions, or `pollUntil` for eventually-consistent APIs.
-- **Read-only environments.** Specs that create or change data must call `test.skip(config.readOnly, "changes data")`. `prod` here is not read-only, because the site is built for practice.
 - **Clean up what you create.** A test that creates an account deletes it (`Accounts.remove`) in a `finally` or `afterAll`.
 - **Extend, don't duplicate.** If a spec for the area exists, add to it.
 
@@ -86,6 +84,7 @@ A client per API area, extending `ApiBase`, exported as a singleton (see `api/Ac
 // api/BrandsClient.ts
 import { ApiBase } from "@benweese/playwright-test-commons";
 import { config } from "../config";
+import type { BrandList } from "./types";
 
 class BrandsClient extends ApiBase {
 	constructor() {
@@ -93,7 +92,7 @@ class BrandsClient extends ApiBase {
 	}
 
 	list() {
-		return this.get("brandsList");
+		return this.get<BrandList>("brandsList");
 	}
 }
 
@@ -107,14 +106,13 @@ A spec calls clients and helpers, then asserts:
 import { generateTestDescription, TAGS, validateJsonSchema } from "@benweese/playwright-test-commons";
 import { test, expect } from "../../../fixtures/test";
 import { Products } from "../../../api/ProductsClient";
-import type { ProductList } from "../../../api/types";
 import { expectResponseCode } from "../../../helpers";
 
 test.describe("Products API", () => {
 	test(
 		generateTestDescription({ id: 12, description: "lists all products", tags: [TAGS.API, TAGS.REGRESSION] }),
 		async () => {
-			const body = await expectResponseCode<ProductList>(await Products.list(), 200);
+			const body = await expectResponseCode(await Products.list(), 200); // a ProductList
 			await validateJsonSchema("products/productsList", body);
 		}
 	);
@@ -122,7 +120,7 @@ test.describe("Products API", () => {
 	test(
 		generateTestDescription({ id: 13, description: "search finds matching products", tags: [TAGS.API] }),
 		async () => {
-			const body = await expectResponseCode<ProductList>(await Products.search("top"), 200);
+			const body = await expectResponseCode(await Products.search("top"), 200);
 			for (const product of body.products) {
 				expect.soft(product.name.toLowerCase()).toContain("top");
 			}
@@ -138,7 +136,7 @@ test.describe("Products API", () => {
 });
 ```
 
-- `pollUntil<T>(() => Client.call(), (body) => condition)` for anything that settles over time.
+- `pollUntil(() => Client.call(), (body) => condition)` for anything that settles over time; `body` has the client's type.
 - `timingCheck(() => Client.call(), maxAverageMs)` for response-time checks.
 
 ## JSON schema validation
