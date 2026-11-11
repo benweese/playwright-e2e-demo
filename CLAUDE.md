@@ -189,10 +189,8 @@ test(
 
 ## Locators (hard rule)
 
-Two tiers:
-
-- **Container** (row, card, list item, dialog, section): may use a stable `data-*` attribute, `getByRole(...).filter({ hasText })`, `getByRole("dialog", { name })` or `getByTestId`.
 - **The element you act on:** only `getByRole`, `getByLabel`, `getByText`, `getByPlaceholder`, `getByAltText`, `getByTitle`, `getByTestId` (which reads `data-qa` here).
+- **No good locator on its own?** If the element can't be found uniquely and reliably by itself, find a good container first: the nearest meaningful parent that gives the element its context (a form, dialog, table row, card, list item, section or landmark). Locate the container the same way, e.g. `getByRole("dialog", { name })`, `getByRole("row").filter({ hasText })` or `getByRole("listitem").filter({ hasText })`, then locate the element inside it. `loggedInAs` in `loginLocators.js` is an example.
 - **Never:** XPath, generated CSS class names, `.first()`/`.nth()`/`.last()` or `:nth-child`. Lint enforces the XPath and index rules.
 - If an element can't be found with the allowed methods, write the best allowed locator and put a comment above it:
   `// Fixme: could not reliably locate <what>. Tried: <locators> — <why>. Needs <role/label/testid>.`

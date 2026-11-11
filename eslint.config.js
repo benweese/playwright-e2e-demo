@@ -35,7 +35,8 @@ export default [
 				"error",
 				{
 					selector: "CallExpression[callee.property.name='locator'] > Literal[value=/^\\/\\/|^xpath=/]",
-					message: "XPath locators are not allowed. Use getByRole/getByLabel/getByText or a data-* container."
+					message:
+						"XPath locators are not allowed. Use getByRole/getByLabel/getByText, scoped to a good container if needed (see CLAUDE.md, Locators)."
 				},
 				{
 					selector: "CallExpression[callee.property.name=/^(nth|first|last)$/]",
