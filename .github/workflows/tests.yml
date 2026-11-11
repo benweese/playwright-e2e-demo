@@ -22,6 +22,9 @@ jobs:
               with:
                   node-version-file: .nvmrc
                   cache: npm
+            # package-lock records the GitHub dependency (playwright-test-commons) as git+ssh;
+            # fetch it over https instead, since the runner has no SSH key.
+            - run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/
             - run: npm ci
             - run: npx playwright install --with-deps chromium
             - run: npm run lint

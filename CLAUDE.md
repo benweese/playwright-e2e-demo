@@ -52,6 +52,10 @@ npm run lint:fix
 - Use `import type` for type-only imports (lint enforces it).
 - Locator factories take `page: Page`. Page objects extend `BasePage<XLocators>`, where `XLocators` is `ReturnType<typeof xLocators>` exported from the locators file.
 
+## Dependencies
+
+- Keep dependencies on their latest versions. Exceptions: **TypeScript stays on 6.x** until typescript-eslint supports 7, and **`playwright` is pinned to the same version as `@playwright/test`**. `@playwright/cli` (used by the agents' page-mapper) depends on a pre-release `playwright`; without the explicit `playwright` dev dependency, npm hoists that pre-release, `npx playwright test` runs it, and Playwright fails with "did not expect test() to be called here". When you upgrade `@playwright/test`, upgrade `playwright` to the same version.
+
 ## Site quirks (read before writing a test)
 
 - **The API always returns HTTP 200**, with a `text/html` content type, and puts the real status in the body: `{ "responseCode": 404, "message": "User not found!" }`. Use `expectResponseCode(response, code)` from `helpers/` for success and error cases alike. Commons' `errorCheck(response, 404)` would always fail here. `getBody` still works (it parses JSON whatever the content type), and `expectResponseCode` calls it.

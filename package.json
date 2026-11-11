@@ -21,20 +21,21 @@
 		"typecheck": "tsc"
 	},
 	"dependencies": {
-		"@benweese/playwright-test-commons": "file:../playwright-test-commons/benweese-playwright-test-commons-0.3.0.tgz",
+		"@benweese/playwright-test-commons": "github:benweese/playwright-test-commons#v0.3.0",
 		"dayjs": "^1.11.23"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@faker-js/faker": "^10.6.0",
-		"@playwright/cli": "^0.1.23",
+		"@playwright/cli": "^0.1.24",
 		"@playwright/test": "^1.65.0",
 		"@types/node": "^26.6.6",
-		"dotenv": "^18.0.9",
+		"dotenv": "^18.0.10",
 		"eslint": "^10.14.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-playwright": "^2.12.2",
 		"globals": "^17.14.0",
+		"playwright": "^1.65.0",
 		"prettier": "^3.9.10",
 		"typescript": "~6.0",
 		"typescript-eslint": "^8.72.2"
