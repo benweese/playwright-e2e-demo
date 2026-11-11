@@ -1,18 +1,18 @@
 /**
- * The one place tests get configuration from: `import { config } from "../../config/index.js"`.
+ * The one place tests get configuration from: `import { config } from "../../config"`.
  */
 import "dotenv/config";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createConfig, configureSchemas } from "@benweese/playwright-test-commons";
-import { environments } from "./environments.js";
+import { environments } from "./environments";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export const config = {
 	...createConfig(environments, { defaultEnv: "prod" }),
 	auth: {
-		// Written by tests/setup/auth.setup.js, removed by auth.teardown.js. Git-ignored.
+		// Written by tests/setup/auth.setup.ts, removed by auth.teardown.ts. Git-ignored.
 		stateFile: path.join(root, ".auth/state.json"),
 		userFile: path.join(root, ".auth/user.json")
 	}

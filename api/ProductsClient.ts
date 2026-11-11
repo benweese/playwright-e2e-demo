@@ -1,5 +1,5 @@
 import { ApiBase } from "@benweese/playwright-test-commons";
-import { config } from "../config/index.js";
+import { config } from "../config";
 
 /** Product endpoints (APIs 1–6 on https://automationexercise.com/api_list). Form-encoded bodies. */
 class ProductsClient extends ApiBase {
@@ -11,7 +11,7 @@ class ProductsClient extends ApiBase {
 		return this.get("productsList");
 	}
 
-	search(term) {
+	search(term: string) {
 		return this.post("searchProduct", { search_product: term });
 	}
 }

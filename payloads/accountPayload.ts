@@ -1,12 +1,28 @@
 import { faker } from "@faker-js/faker";
 
-/**
- * A complete, valid body for POST /api/createAccount. Every field is required by the API.
- * The email is unique per call, so parallel workers never collide.
- *
- * @param {Partial<Record<string, string>>} [overrides]
- */
-export function buildAccount(overrides = {}) {
+/** A complete, valid body for POST /api/createAccount. Every field is required by the API. */
+export interface Account {
+	name: string;
+	email: string;
+	password: string;
+	title: "Mr" | "Mrs";
+	birth_date: string;
+	birth_month: string;
+	birth_year: string;
+	firstname: string;
+	lastname: string;
+	company: string;
+	address1: string;
+	address2: string;
+	country: string;
+	zipcode: string;
+	state: string;
+	city: string;
+	mobile_number: string;
+}
+
+/** The email is unique per call, so parallel workers never collide. */
+export function buildAccount(overrides: Partial<Account> = {}): Account {
 	const firstname = faker.person.firstName();
 	const lastname = faker.person.lastName();
 	const birth = faker.date.birthdate({ mode: "age", min: 18, max: 80 });
@@ -14,7 +30,7 @@ export function buildAccount(overrides = {}) {
 		name: `${firstname} ${lastname}`,
 		email: `qa.${Date.now()}.${faker.string.alphanumeric(6).toLowerCase()}@example.com`,
 		password: faker.internet.password({ length: 14 }),
-		title: faker.helpers.arrayElement(["Mr", "Mrs"]),
+		title: faker.helpers.arrayElement(["Mr", "Mrs"] as const),
 		birth_date: String(birth.getDate()),
 		birth_month: String(birth.getMonth() + 1),
 		birth_year: String(birth.getFullYear()),

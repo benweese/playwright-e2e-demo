@@ -1,11 +1,14 @@
+// ESLint's own config stays JavaScript: loading a .ts config needs an extra runtime loader.
 import js from "@eslint/js";
 import globals from "globals";
+import tseslint from "typescript-eslint";
 import playwright from "eslint-plugin-playwright";
 import prettier from "eslint-config-prettier";
 
-export default [
+export default tseslint.config(
 	{ ignores: ["**/node_modules/**", "**/playwright-report/**", "**/test-results/**", "**/.auth/**"] },
 	js.configs.recommended,
+	...tseslint.configs.recommended,
 	{
 		languageOptions: {
 			ecmaVersion: "latest",
@@ -13,14 +16,15 @@ export default [
 			globals: { ...globals.node }
 		},
 		rules: {
-			"no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+			"@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+			"@typescript-eslint/consistent-type-imports": "error",
 			"prefer-const": "error",
 			"no-var": "error",
 			eqeqeq: ["error", "always"]
 		}
 	},
 	{
-		files: ["tests/**/*.js", "fixtures/**/*.js"],
+		files: ["tests/**/*.ts", "fixtures/**/*.ts"],
 		...playwright.configs["flat/recommended"],
 		rules: {
 			...playwright.configs["flat/recommended"].rules,
@@ -45,10 +49,10 @@ export default [
 				{
 					selector:
 						"ImportDeclaration[source.value='@playwright/test'] ImportSpecifier[imported.name='test']",
-					message: "Import test from fixtures/test.js, which blocks the site's ads (see CLAUDE.md)."
+					message: "Import test from fixtures/test.ts, which blocks the site's ads (see CLAUDE.md)."
 				}
 			]
 		}
 	},
 	prettier
-];
+);

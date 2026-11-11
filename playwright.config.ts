@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { config } from "./config/index.js";
+import { config } from "./config";
 
 /**
  * Projects select tests by tag (tags come from TAGS in @benweese/playwright-test-commons):
@@ -9,7 +9,7 @@ import { config } from "./config/index.js";
  *   ui       – @ui, desktop Chrome, starts logged in (depends on setup)
  *   teardown – deletes the test account after ui finishes
  *
- * A test with none of the smoke/api/ui tags runs in no project. The planner tags every scenario.
+ * A spec with none of the smoke/api/ui tags runs in no project; npm run check:ids catches that.
  */
 export default defineConfig({
 	testDir: "./tests",
@@ -31,11 +31,11 @@ export default defineConfig({
 		{ name: "api", grep: /@api/ },
 		{
 			name: "setup",
-			testMatch: /auth\.setup\.js/,
+			testMatch: /auth\.setup\.ts/,
 			teardown: "teardown",
 			use: { ...devices["Desktop Chrome"] }
 		},
-		{ name: "teardown", testMatch: /auth\.teardown\.js/ },
+		{ name: "teardown", testMatch: /auth\.teardown\.ts/ },
 		{
 			name: "ui",
 			grep: /@ui/,
