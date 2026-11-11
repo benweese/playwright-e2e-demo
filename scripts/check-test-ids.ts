@@ -9,13 +9,16 @@
  * Run: npm run check:ids (also part of npm run lint)
  */
 import { execFileSync } from "child_process";
+import { formatTestId } from "@benweese/playwright-test-commons";
 
+/** One test() call, as listed by `playwright test --list --reporter=json`. */
 interface Spec {
 	title: string;
 	file: string;
 	line: number;
 }
 
+/** A file or describe block in that listing. */
 interface Suite {
 	specs?: Spec[];
 	suites?: Suite[];
@@ -23,7 +26,6 @@ interface Suite {
 
 const ID = /^#(\d{4,}) \|/;
 const PROJECT_TAG = /(^|\s)@(smoke|api|ui)(\s|$)/;
-const format = (id: number) => `#${String(id).padStart(4, "0")}`;
 
 const output = execFileSync(
 	"npx",
@@ -32,7 +34,7 @@ const output = execFileSync(
 );
 const report = JSON.parse(output) as { suites: Suite[] };
 
-/** Every spec, i.e. every test() call. */
+/** Yields every spec in a suite and its nested suites. */
 function* specs(suite: Suite): Generator<Spec> {
 	for (const spec of suite.specs ?? []) {
 		yield spec;
@@ -61,7 +63,7 @@ for (const suite of report.suites) {
 }
 for (const [id, places] of byId) {
 	if (places.length > 1) {
-		problems.push(`${format(id)} is used more than once:\n  ${places.join("\n  ")}`);
+		problems.push(`${formatTestId(id)} is used more than once:\n  ${places.join("\n  ")}`);
 	}
 }
 
@@ -69,4 +71,6 @@ if (problems.length) {
 	console.error(problems.join("\n"));
 	process.exit(1);
 }
-console.log(`${byId.size} test ids, all unique. Highest: ${format(Math.max(0, ...byId.keys()))}`);
+console.log(
+	`${byId.size} test ids, all unique. Highest: ${byId.size ? formatTestId(Math.max(...byId.keys())) : "none"}`
+);

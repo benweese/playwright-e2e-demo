@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-/** A complete, valid body for POST /api/createAccount. Every field is required by the API. */
+/** Body of POST /createAccount and PUT /updateAccount. The API requires every field. */
 export interface Account {
 	name: string;
 	email: string;
@@ -21,7 +21,17 @@ export interface Account {
 	mobile_number: string;
 }
 
-/** The email is unique per call, so parallel workers never collide. */
+/**
+ * Builds a complete, valid account with fake data. The email is unique on every call, so
+ * parallel workers never collide.
+ *
+ * @param overrides - fields to set instead of the generated ones
+ * @returns an account ready for `Accounts.create`
+ *
+ * @example
+ * const account = buildAccount({ country: "Canada" });
+ * await expectResponseCode(await Accounts.create(account), 201);
+ */
 export function buildAccount(overrides: Partial<Account> = {}): Account {
 	const firstname = faker.person.firstName();
 	const lastname = faker.person.lastName();

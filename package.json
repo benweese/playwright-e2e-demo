@@ -21,7 +21,7 @@
 		"typecheck": "tsc"
 	},
 	"dependencies": {
-		"@benweese/playwright-test-commons": "github:benweese/playwright-test-commons#v0.5.0",
+		"@benweese/playwright-test-commons": "github:benweese/playwright-test-commons#v0.5.1",
 		"dayjs": "^1.11.23"
 	},
 	"devDependencies": {
@@ -33,6 +33,7 @@
 		"dotenv": "^18.0.10",
 		"eslint": "^10.14.0",
 		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-jsdoc": "^65.4.5",
 		"eslint-plugin-playwright": "^2.12.2",
 		"globals": "^17.14.0",
 		"playwright": "^1.65.0",

@@ -1,26 +1,37 @@
-/** Response bodies of automationexercise.com's API (https://automationexercise.com/api_list). */
+/**
+ * Response bodies of automationexercise.com's API (https://automationexercise.com/api_list).
+ * Name them in client methods (`this.get<ProductList>(...)`) so tests get typed bodies.
+ */
 
-/** Every response carries the real status here; HTTP is always 200. */
+/** Fields every response has. HTTP is always 200; the real status is `responseCode`. */
 export interface ApiEnvelope {
+	/** The real status, e.g. 200, 201, 404 or 405. */
 	responseCode: number;
+	/** Human-readable result, e.g. "User created!". Absent on most successful reads. */
 	message?: string;
 }
 
+/** One product, as listed by the products endpoints. */
 export interface Product {
 	id: number;
 	name: string;
+	/** Price with currency, e.g. "Rs. 500". */
 	price: string;
 	brand: string;
 	category: {
+		/** Who the product is for, e.g. "Women", "Men" or "Kids". */
 		usertype: { usertype: string };
+		/** e.g. "Tops", "Tshirts" or "Dress". */
 		category: string;
 	};
 }
 
+/** Body of GET /productsList and POST /searchProduct. */
 export interface ProductList extends ApiEnvelope {
 	products: Product[];
 }
 
+/** Body of GET /getUserDetailByEmail. */
 export interface UserDetail extends ApiEnvelope {
 	user: {
 		id: number;

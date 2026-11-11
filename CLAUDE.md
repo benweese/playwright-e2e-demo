@@ -38,7 +38,7 @@ npx playwright test --grep "#0002"                          # one test, by its i
 npx playwright test tests/smoke/site-up.spec.ts --headed    # one file, in a visible browser
 npx playwright test --project=api --reporter=line           # one project, compact output
 npx playwright show-report                                  # open the last HTML report
-npm run lint                                                # ESLint + type-check + test id check
+npm run lint                                                # ESLint (incl. JSDoc) + type-check + test id check
 npm run lint:fix
 ```
 
@@ -56,6 +56,12 @@ npm run lint:fix
 
 - Keep dependencies on their latest versions. Exceptions: **TypeScript stays on 6.x** until typescript-eslint supports 7, and **`playwright` is pinned to the same version as `@playwright/test`**. `@playwright/cli` (used by the agents' page-mapper) depends on a pre-release `playwright`; without the explicit `playwright` dev dependency, npm hoists that pre-release, `npx playwright test` runs it, and Playwright fails with "did not expect test() to be called here". When you upgrade `@playwright/test`, upgrade `playwright` to the same version.
 - **`minimatch` is overridden to 11.x** in `package.json` to fix [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249): ESLint and typescript-eslint still ask for 10.x, and every 10.x is affected. Remove the override once they require 11 themselves.
+
+## Documentation
+
+- **JSDoc on reusable code.** Every client method, page object method, locator factory, helper, payload builder and fixture gets a JSDoc: one-line summary, `@param` for each parameter, `@returns`, `@throws` if it can throw, and an `@example` where usage isn't obvious. For a client method, say the endpoint and the `responseCode` to expect. Lint enforces it in `api/`, `config/`, `fixtures/`, `helpers/`, `payloads/` and `tests/ui/locators|pages|data/`.
+- **Specs are documented by their titles and plans**, not by comments.
+- **Comments explain why, never what.** Keep a comment only for something the code can't say, such as a site quirk or a non-obvious choice. Don't restate the code.
 
 ## Site quirks (read before writing a test)
 
