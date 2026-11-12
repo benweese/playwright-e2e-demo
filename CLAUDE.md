@@ -31,7 +31,7 @@ tests/smoke/         @smoke checks
 tests/setup/         account setup and teardown                      (see tests/setup/CLAUDE.md)
 tests/api/           API specs                                       (see tests/api/CLAUDE.md)
 tests/ui/            locators, pages, specs, data                    (see tests/ui/CLAUDE.md)
-plans/               test plans, local and git-ignored               (see plans/CLAUDE.md)
+plans/               reviewed test plans, the spec behind each test id (see plans/CLAUDE.md)
 docs/pages/          page references written by the page-mapper agent
 .playwright/         playwright-cli settings, used by the agents
 ```

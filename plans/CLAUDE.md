@@ -2,7 +2,7 @@
 
 One plan per feature, `plans/<feature>.md`: the written test cases. Planner agents write them, a human reviews them, and generators turn each scenario into one test.
 
-Plans are **local working files**: everything in `plans/` except this guide is git-ignored. The test titles carry each scenario's id (`#0012`), and the tests themselves are the committed record. Keep a plan up to date while you work on its tests.
+Plans are **committed documentation**: the human-reviewed spec behind every test id. The test titles carry each scenario's id (`#0012`), so a failing test leads straight to its written steps and expected result. Keep a plan up to date while you work on its tests, and commit it with them.
 
 ## Format
 

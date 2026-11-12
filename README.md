@@ -81,7 +81,7 @@ map pages → plan → human review → generate → run → heal → human revi
 ```
 
 1. **Map.** The page-mapper agent surveyed seven areas of the site in a live browser (home, signup/login, products and search, product detail, cart, checkout, contact) and wrote what is actually there, with exact text, to [`docs/pages/`](docs/pages/). Maps describe observed behaviour; they are references for locators, not requirements.
-2. **Plan.** The API planner wrote acceptance criteria and scenarios from the API list, and the UI planner from the site's published test cases plus the maps. Plans are local working files (`plans/` is git-ignored); each scenario's id (`#0042`) is in its test's title, so the tests are the committed record.
+2. **Plan.** The API planner wrote acceptance criteria and scenarios from the API list, and the UI planner from the site's published test cases plus the maps. The plans are committed in [`plans/`](plans/), one per feature: [API products](plans/api-products.md), [API brands](plans/api-brands.md), [API accounts](plans/api-accounts.md), [account](plans/ui-account.md), [products](plans/ui-products.md), [cart](plans/ui-cart.md), [checkout](plans/ui-checkout.md), [contact](plans/ui-contact.md), [subscription](plans/ui-subscription.md) and [accessibility](plans/ui-a11y.md). Each scenario's id (`#0042`) is in its test's title, so a failing test leads straight to its written steps, expected result and the requirement behind it.
 3. **Review.** I read every plan before any code was written (changes below).
 4. **Generate.** The API and UI generators wrote the clients, page objects, locators, specs and schemas, then linted and ran them.
 5. **Heal.** The healer fixed one timing failure (#0037). It was allowed to change locators and waits only, never assertions.
@@ -170,7 +170,7 @@ tests/smoke/             @smoke checks
 tests/setup/             account create (setup) and delete (teardown)
 tests/api/               @api specs: products, brands, accounts
 tests/ui/                locators, pages, specs and data for @ui tests
-plans/                   test plans (local and git-ignored, except plans/CLAUDE.md)
+plans/                   the reviewed test plans: acceptance criteria and scenarios behind every test id
 docs/pages/              page references written by the page-mapper agent
 .playwright/             playwright-cli settings, used by the agents
 .claude/settings.json    names the playwright-qa-agents plugin

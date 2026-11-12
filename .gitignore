@@ -11,7 +11,3 @@ error-*.png
 error-*.log
 .claude/settings.local.json
 .DS_Store
-
-# Plans are local working files; only the guide for writing them is committed.
-plans/*
-!plans/CLAUDE.md
