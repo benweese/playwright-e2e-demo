@@ -17,6 +17,19 @@ export const config = {
 	apiBaseUrl: "https://automationexercise.com/api",
 	/** Log every request and response body. Set `DEBUG_API=true` in `.env` for local debugging only. */
 	debug: process.env.DEBUG_API === "true",
+	/**
+	 * Address for the data tests create: `<localPart>+<unique>@<domain>`. Build one with
+	 * commons' `uniqueEmail(config.testEmail)`. A domain we own makes the suite's accounts recognisable.
+	 */
+	testEmail: {
+		localPart: "playwright",
+		domain: "benweese.com"
+	},
+	/** Waits longer than Playwright's 5 s default, for steps the site is known to be slow on. */
+	timeouts: {
+		/** The "Added!" modal appears only after a slow server call, up to ~20 s under load. */
+		addedToCartModalMs: 20_000
+	},
 	/** Files written by `tests/setup/auth.setup.ts` and removed by `auth.teardown.ts`. Git-ignored. */
 	auth: {
 		/** The logged-in browser session the ui project starts from. */

@@ -31,6 +31,17 @@ export interface ProductList extends ApiEnvelope {
 	products: Product[];
 }
 
+/** One brand, as listed by GET /brandsList. */
+export interface Brand {
+	id: number;
+	brand: string;
+}
+
+/** Body of GET /brandsList. */
+export interface BrandList extends ApiEnvelope {
+	brands: Brand[];
+}
+
 /** Body of GET /getUserDetailByEmail. */
 export interface UserDetail extends ApiEnvelope {
 	user: {

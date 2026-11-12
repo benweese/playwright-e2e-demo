@@ -19,6 +19,9 @@ jobs:
     test:
         runs-on: ubuntu-latest
         timeout-minutes: 20
+        outputs:
+            # "success" when this run uploaded a report for Pages; deploy-report keys off it.
+            report: ${{ steps.pages-report.outcome }}
         steps:
             - uses: actions/checkout@v7
             - uses: actions/setup-node@v7
@@ -32,10 +35,41 @@ jobs:
             - run: npx playwright install --with-deps chromium
             - run: npm run lint
             - run: npx prettier --check .
-            - run: npx playwright test
+            # api + ui (with setup and teardown) runs every test once; @smoke tests also carry @api or @ui.
+            - id: playwright
+              run: npx playwright test --project=api --project=ui
             - uses: actions/upload-artifact@v7
               if: ${{ !cancelled() }}
               with:
                   name: playwright-report
                   path: playwright-report/
                   retention-days: 14
+            # Publish the report from main and the nightly run, including when tests fail: failing
+            # tests are the documented-vs-actual findings, and the report is where they are read.
+            - id: pages-report
+              uses: actions/upload-pages-artifact@v5
+              if: >-
+                  ${{ !cancelled() && steps.playwright.outcome != 'skipped' &&
+                  (github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) }}
+              with:
+                  path: playwright-report/
+
+    deploy-report:
+        needs: test
+        if: ${{ !cancelled() && needs.test.outputs.report == 'success' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        # Only this job can write to Pages; the rest of the workflow stays read-only.
+        permissions:
+            pages: write
+            id-token: write
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        # Never cancel a Pages deploy halfway; a newer run waits for this one instead.
+        concurrency:
+            group: pages
+            cancel-in-progress: false
+        steps:
+            - id: deployment
+              uses: actions/deploy-pages@v5

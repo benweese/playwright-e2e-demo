@@ -1,4 +1,6 @@
+import { uniqueEmail } from "@benweese/playwright-test-commons";
 import { faker } from "@faker-js/faker";
+import { config } from "../config";
 
 /** Body of POST /createAccount and PUT /updateAccount. The API requires every field. */
 export interface Account {
@@ -38,7 +40,7 @@ export function buildAccount(overrides: Partial<Account> = {}): Account {
 	const birth = faker.date.birthdate({ mode: "age", min: 18, max: 80 });
 	return {
 		name: `${firstname} ${lastname}`,
-		email: `qa.${Date.now()}.${faker.string.alphanumeric(6).toLowerCase()}@example.com`,
+		email: uniqueEmail(config.testEmail),
 		password: faker.internet.password({ length: 14 }),
 		title: faker.helpers.arrayElement(["Mr", "Mrs"] as const),
 		birth_date: String(birth.getDate()),

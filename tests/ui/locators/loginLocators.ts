@@ -13,6 +13,12 @@ export const loginLocators = (page: Page) => ({
 	passwordInput: page.getByTestId("login-password"),
 	loginButton: page.getByTestId("login-button"),
 	loginError: page.getByText("Your email or password is incorrect!"),
+	loginHeading: page.getByRole("heading", { name: "Login to your account" }),
+	signupHeading: page.getByRole("heading", { name: "New User Signup!" }),
+	signupNameInput: page.getByTestId("signup-name"),
+	signupEmailInput: page.getByTestId("signup-email"),
+	signupButton: page.getByTestId("signup-button"),
+	signupError: page.getByText("Email Address already exist!"),
 	/** The header's "Logged in as <name>" item, scoped by its text. */
 	loggedInAs: (name: string) => page.getByRole("listitem").filter({ hasText: `Logged in as ${name}` })
 });

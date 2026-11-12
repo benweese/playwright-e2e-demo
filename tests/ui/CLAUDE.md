@@ -13,7 +13,7 @@ Create them in that order. Reuse or extend an existing page object or spec for t
 
 ## Example
 
-`loginLocators` and `LoginPage` are real; `home.spec.ts` shows a spec for a `HomePage` you would add:
+`loginLocators`, `LoginPage` and `HomePage` are real; `home.spec.ts` is an illustration (the real specs are in `specs/`):
 
 ```ts
 // tests/ui/locators/loginLocators.ts
@@ -68,7 +68,7 @@ test(
 	async ({ page }) => {
 		const home = new HomePage(page);
 		await home.open();
-		await home.expectLoggedIn();
+		await home.expectLoaded();
 	}
 );
 ```
@@ -76,16 +76,18 @@ test(
 ## Page objects and specs
 
 - Specs never contain raw locators; they call page methods.
-- Page objects use `BasePage` methods (`this.goto`, `this.click`, `this.fill`, `this.expectVisible`, ...), not raw `locator.click()`, except for small things BasePage doesn't cover (like `press`). `this.goto("/path")`, never a full URL.
-- A helper every page could use, taking locators as arguments, belongs in `BasePage` (in commons). Anything with page-specific names goes on the page object.
+- Page objects use `BasePage` methods, not raw Playwright, except for small things BasePage doesn't cover (like `press`). Besides `goto`, `click`, `fill` and `expectVisible`/`expectHidden`/`expectText`/`expectUrl`, it has `expectValue`, `expectCount`, `expectAny`, `expectInvalid` (browser validation), `expectTitle`, `expectFilesAttached`, `uploadFiles`, `reload`, `waitForLoad`, `clickAndWaitForResponse`, `clickAndHandleDialog` and `recordDialogs`. Checks are soft; pass `{ soft: false }` when later steps depend on them, or a `timeout` for something known to be slow. `this.goto("/path")`, never a full URL.
+- A helper every page could use, taking locators as arguments, belongs in `BasePage` (in commons): add it there and release a new tag, never a local helper file. Anything with page-specific names goes on the page object.
+- Accessibility: `expectNoA11yViolations(page)` from commons scans the page as it is, WCAG 2.0–2.2 A/AA.
 - Locator factories take `page: Page` and export their type (`ReturnType<typeof xLocators>`); page objects extend `BasePage<XLocators>`.
 - JSDoc on every locator factory and page object method (lint enforces it).
 
 ## Locators (hard rule)
 
-- **The element you act on:** only `getByRole`, `getByLabel`, `getByText`, `getByPlaceholder`, `getByAltText`, `getByTitle`, `getByTestId`.
+- **The element you act on:** `getByRole`, `getByLabel`, `getByText`, `getByPlaceholder`, `getByAltText`, `getByTitle`, `getByTestId`, or a stable `data-*` attribute when none of those is unique, e.g. `page.locator('[data-product-id="1"]')`.
 - **`data-qa` attributes.** The site marks form controls with `data-qa="login-email"` and similar, and `testIdAttribute` is `data-qa`, so `page.getByTestId("login-email")` finds them. Prefer them where the control has no accessible label.
-- **No good locator on its own?** If the element can't be found uniquely and reliably by itself, find a good container first: the nearest meaningful parent that gives the element its context (a form, dialog, table row, card, list item, section or landmark). Locate the container the same way, e.g. `getByRole("dialog", { name })`, `getByRole("row").filter({ hasText })` or `getByRole("listitem").filter({ hasText })`, then locate the element inside it. `loggedInAs` in `loginLocators.ts` is an example.
+- **No good locator on its own?** If the element can't be found uniquely and reliably by itself, find a good container first: the nearest meaningful parent that gives the element its context (a form, dialog, table row, card, list item, section or landmark). Locate the container the same way or by a stable `data-*` attribute, e.g. `getByRole("dialog", { name })`, `getByRole("row").filter({ hasText })` or `getByRole("listitem").filter({ hasText })`, then locate the element inside it. `loggedInAs` in `loginLocators.ts` is an example.
+- **Two ids are allowed, and no others:** `#submit_search` (the product search button) and `#subscribe` (the footer subscribe button). Both are icon-only, with no accessible name or `data-*` attribute.
 - **Never:** XPath, generated CSS class names, `.first()`/`.nth()`/`.last()` or `:nth-child`. Lint enforces the XPath and index rules.
 - If an element can't be found with the allowed methods, write the best allowed locator and put a comment above it:
   `// Fixme: could not reliably locate <what>. Tried: <locators> — <why>. Needs <role/label/testid>.`
@@ -97,3 +99,11 @@ The `ui` project starts logged in as the run's test account (see `tests/setup/CL
 - `readTestUser()` from `helpers/` returns its `{ name, email, password }`.
 - A test that needs a logged-out page uses `test.use({ storageState: { cookies: [], origins: [] } })`.
 - Don't log out or delete the shared account in a test; other ui tests run with the same session. A test that needs its own account creates one with `Accounts.create(buildAccount())` and deletes it afterwards.
+- **The cart belongs to the session cookie.** Every ui test shares one session, so any test that touches the cart uses the logged-out `storageState` above (and its own account if it must be logged in). Otherwise parallel tests would share one cart.
+
+## Site quirks
+
+- **Late-bound handlers.** Some controls are wired by a script at the end of the page (the cart's remove "X" by `cart.js`), so a click that lands first does nothing even though the element is visible. Call `this.waitForLoad()`, then `this.clickAndWaitForResponse(...)` for the control's own request, as `CartPage.removeProduct` does.
+- **The "Added!" modal is slow**, up to ~20 s under load; wait with `config.timeouts.addedToCartModalMs`.
+- **Duplicated cards.** Each product card holds its name, price and "Add to cart" twice (a hover overlay), which is why some product locators carry a `// Fixme:`.
+- **Brief success messages.** The subscription message shows for about a second; assert it straight after the click.

@@ -5,7 +5,7 @@
  */
 import { ApiBase } from "@benweese/playwright-test-commons";
 import { config } from "../config";
-import type { ProductList } from "./types";
+import type { ApiEnvelope, ProductList } from "./types";
 
 /** Client for the product endpoints. Use the exported {@link Products} instance. */
 class ProductsClient extends ApiBase {
@@ -25,6 +25,16 @@ class ProductsClient extends ApiBase {
 	 */
 	search(term: string) {
 		return this.post<ProductList>("searchProduct", { search_product: term });
+	}
+
+	/** POST /productsList (no body). Not supported: expect `responseCode` 405 "This request method is not supported.". */
+	listWithPost() {
+		return this.post<ApiEnvelope>("productsList");
+	}
+
+	/** POST /searchProduct without `search_product`. Expect `responseCode` 400 "Bad request, search_product parameter is missing in POST request.". */
+	searchWithoutTerm() {
+		return this.post<ApiEnvelope>("searchProduct");
 	}
 }
 

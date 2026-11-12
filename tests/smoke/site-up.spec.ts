@@ -7,14 +7,20 @@ import { test, expect } from "../../fixtures/test";
 import { Products } from "../../api/ProductsClient";
 import { expectResponseCode } from "../../helpers";
 
-test(generateTestDescription({ id: 1, description: "home page responds", tags: [TAGS.SMOKE] }), async ({ page }) => {
-	// domcontentloaded: a slow third-party script shouldn't fail "is the site up".
-	const response = await page.goto("/", { waitUntil: "domcontentloaded" });
-	expect(response?.status(), "home page HTTP status").toBeLessThan(400);
-	await expect(page).toHaveTitle(/Automation Exercise/);
-});
+test(
+	generateTestDescription({ id: 1, description: "home page responds", tags: [TAGS.SMOKE, TAGS.UI] }),
+	async ({ page }) => {
+		// domcontentloaded: a slow third-party script shouldn't fail "is the site up".
+		const response = await page.goto("/", { waitUntil: "domcontentloaded" });
+		expect(response?.status(), "home page HTTP status").toBeLessThan(400);
+		await expect(page).toHaveTitle(/Automation Exercise/);
+	}
+);
 
-test(generateTestDescription({ id: 2, description: "products API responds", tags: [TAGS.SMOKE] }), async () => {
-	const body = await expectResponseCode(await Products.list(), 200);
-	expect.soft(body.products.length, "number of products").toBeGreaterThan(0);
-});
+test(
+	generateTestDescription({ id: 2, description: "products API responds", tags: [TAGS.SMOKE, TAGS.API] }),
+	async () => {
+		const body = await expectResponseCode(await Products.list(), 200);
+		expect.soft(body.products.length, "number of products").toBeGreaterThan(0);
+	}
+);

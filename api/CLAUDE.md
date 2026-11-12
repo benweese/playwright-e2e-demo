@@ -14,7 +14,7 @@ One client class per API area, extending `ApiBase` from commons, exported as a s
 - **JSDoc on every method** (lint enforces it): the HTTP method and path, the `responseCode` to expect, and a `@param` for each parameter.
 - Extend an existing client for the same area instead of adding a second one.
 
-Existing clients: `AccountsClient.ts` (`Accounts`), `ProductsClient.ts` (`Products`). For example, a client to add for brands:
+Existing clients: `AccountsClient.ts` (`Accounts`), `BrandsClient.ts` (`Brands`), `ProductsClient.ts` (`Products`). Negative cases from the docs (wrong HTTP verb, missing parameter) get their own named method, such as `Brands.listWithPut()`. The brands client, shortened:
 
 ```ts
 // api/BrandsClient.ts

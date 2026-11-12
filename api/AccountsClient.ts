@@ -34,6 +34,20 @@ class AccountsClient extends ApiBase {
 	}
 
 	/**
+	 * POST /verifyLogin with only `password`. Expect `responseCode` 400 "Bad request, email or password parameter is missing in POST request.".
+	 *
+	 * @param password - the account's password
+	 */
+	verifyLoginWithoutEmail(password: string) {
+		return this.post<ApiEnvelope>("verifyLogin", { password });
+	}
+
+	/** DELETE /verifyLogin (no body). Not supported: expect `responseCode` 405 "This request method is not supported.". */
+	verifyLoginWithDelete() {
+		return this.delete<ApiEnvelope>("verifyLogin");
+	}
+
+	/**
 	 * GET /getUserDetailByEmail. Expect `responseCode` 200 with the account in `user`.
 	 *
 	 * @param email - the account's email

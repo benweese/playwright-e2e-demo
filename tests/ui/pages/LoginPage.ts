@@ -42,4 +42,46 @@ export class LoginPage extends BasePage<LoginLocators> {
 	async expectLoginError() {
 		await this.expectVisible(this.locators.loginError, "login error message");
 	}
+
+	/** Asserts the "Login to your account" heading is shown. */
+	async expectLoginHeading() {
+		await this.expectVisible(this.locators.loginHeading, '"Login to your account" heading');
+	}
+
+	/** Asserts the "New User Signup!" heading is shown. */
+	async expectSignupHeading() {
+		await this.expectVisible(this.locators.signupHeading, '"New User Signup!" heading');
+	}
+
+	/** Asserts the "Your email or password is incorrect!" message is not shown. */
+	async expectNoLoginError() {
+		await this.expectHidden(this.locators.loginError, "login error message");
+	}
+
+	/**
+	 * Starts a sign-up through the "New User Signup!" form.
+	 *
+	 * @param name - the new account's name
+	 * @param email - the new account's email
+	 */
+	async signup(name: string, email: string) {
+		await this.fill(this.locators.signupNameInput, name);
+		await this.fill(this.locators.signupEmailInput, email);
+		await this.click(this.locators.signupButton);
+	}
+
+	/** Asserts the "Email Address already exist!" message is shown. */
+	async expectSignupError() {
+		await this.expectVisible(this.locators.signupError, "signup error message");
+	}
+
+	/** Clicks "Login" without entering anything. */
+	async submitLoginForm() {
+		await this.click(this.locators.loginButton);
+	}
+
+	/** Asserts the login email field fails the browser's own validation. */
+	async expectLoginEmailInvalid() {
+		await this.expectInvalid(this.locators.emailInput, "login email field is invalid");
+	}
 }

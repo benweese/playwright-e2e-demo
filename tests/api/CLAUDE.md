@@ -7,43 +7,42 @@ API specs, one folder per area: `tests/api/<area>/<name>.spec.ts`. Clients and r
 - Tag every test `TAGS.API`. Call client methods; never use `request` directly.
 - **Check every response with `expectResponseCode(response, code)`** from `helpers/`, for success and error cases alike. The site's API always answers HTTP 200 and puts the real status in `responseCode`. `expectResponseCode` asserts HTTP 2xx, parses the JSON, soft-asserts `responseCode`, and returns the body typed by the client.
 - Then validate the body's shape with `validateJsonSchema` (see below), then assert only the values this test is about.
-- A test that creates data (an account, say) deletes it in a `finally` or `afterAll`.
+- A test that creates data (an account, say) deletes it in a `finally` or `afterAll`. A test that deletes as its subject does it once, in `finally`, and asserts the kept response afterwards (see #0016).
+- **One `test()` per id.** `check:ids` counts ids in the source, so a loop around `test()` fails lint. To check several inputs under one scenario, loop inside the test and wrap each input in `test.step` (see #0007).
+- Wrong-verb and missing-parameter cases get named client methods (`Products.listWithPost()`, `Accounts.verifyLoginWithoutEmail()`), never a raw call from the spec.
 
-For example, a products spec:
+From `tests/api/products/products.spec.ts`:
 
 ```ts
-// tests/api/products/products.spec.ts
-import { generateTestDescription, TAGS, validateJsonSchema } from "@benweese/playwright-test-commons";
-import { test, expect } from "../../../fixtures/test";
-import { Products } from "../../../api/ProductsClient";
-import { expectResponseCode } from "../../../helpers";
+test(
+	generateTestDescription({
+		id: 6,
+		description: "POST /productsList is not supported",
+		tags: [TAGS.API, TAGS.REGRESSION]
+	}),
+	async () => {
+		const body = await expectResponseCode(await Products.listWithPost(), 405);
+		await validateJsonSchema("products/apiMessage", body);
+		expect.soft(body.message).toBe("This request method is not supported.");
+	}
+);
 
-test.describe("Products API", () => {
-	test(
-		generateTestDescription({ id: 12, description: "lists all products", tags: [TAGS.API, TAGS.REGRESSION] }),
-		async () => {
-			const body = await expectResponseCode(await Products.list(), 200); // a ProductList
-			await validateJsonSchema("products/productsList", body);
+test(
+	generateTestDescription({
+		id: 7,
+		description: "POST /searchProduct returns the searched products list",
+		tags: [TAGS.API, TAGS.REGRESSION]
+	}),
+	async () => {
+		for (const term of ["top", "tshirt", "jean"]) {
+			await test.step(`search "${term}"`, async () => {
+				const body = await expectResponseCode(await Products.search(term), 200);
+				await validateJsonSchema("products/searchProduct", body);
+				expect.soft(body.products.length, `number of products for "${term}"`).toBeGreaterThan(0);
+			});
 		}
-	);
-
-	test(
-		generateTestDescription({ id: 13, description: "search finds matching products", tags: [TAGS.API] }),
-		async () => {
-			const body = await expectResponseCode(await Products.search("top"), 200);
-			for (const product of body.products) {
-				expect.soft(product.name.toLowerCase()).toContain("top");
-			}
-		}
-	);
-
-	test(
-		generateTestDescription({ id: 14, description: "POST to productsList is not supported", tags: [TAGS.API] }),
-		async () => {
-			await expectResponseCode(await Products.post("productsList"), 405);
-		}
-	);
-});
+	}
+);
 ```
 
 ## Schemas

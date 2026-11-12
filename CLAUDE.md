@@ -15,16 +15,16 @@ This file holds what applies everywhere. Each folder with its own rules has a `C
 
 The suite is built on two other repos:
 
-- **[playwright-test-commons](https://github.com/benweese/playwright-test-commons)** (`@benweese/playwright-test-commons`): `ApiBase`, `getBody`, `validateJsonSchema`, the date helpers, `BasePage`, `generateTestDescription`, `TAGS`, with type definitions. Installed from a git tag (`github:benweese/playwright-test-commons#v0.5.1`). Change it in that repo, tag a new version and install that tag here; never patch `node_modules`.
+- **[playwright-test-commons](https://github.com/benweese/playwright-test-commons)** (`@benweese/playwright-test-commons`): `ApiBase`, `getBody`, `validateJsonSchema`, the date helpers, `BasePage`, `expectNoA11yViolations`, `uniqueEmail`, `generateTestDescription`, `TAGS`, with type definitions. A helper any site could use goes there, not in this repo. Installed from a git tag (`github:benweese/playwright-test-commons#v0.7.0`). Change it in that repo, tag a new version and install that tag here; never patch `node_modules`.
 - **[playwright-ai-qa-agents](https://github.com/benweese/playwright-ai-qa-agents)**: the `playwright-qa-agents` Claude Code plugin that plans, writes, runs and heals tests here.
 
 ## Layout
 
 ```
 api/                 API clients and response types                  (see api/CLAUDE.md)
-config/index.ts      `config`: site URLs, debug switch, auth file paths; the only place tests read settings from
+config/index.ts      `config`: site URLs, debug switch, auth file paths, test email, slow-step timeouts; the only place tests read settings from
 fixtures/test.ts     `test` and `expect` for every spec, with ads blocked
-helpers/             expectResponseCode, readTestUser (exported from helpers/index.ts)
+helpers/             expectResponseCode, readTestUser (exported from helpers/index.ts); site-specific only
 payloads/            faker request builders, typed
 schemas/             JSON schemas for API responses                  (see schemas/CLAUDE.md)
 tests/smoke/         @smoke checks
@@ -41,7 +41,7 @@ docs/pages/          page references written by the page-mapper agent
 Run Playwright directly from the repo root, where `playwright.config.ts` lives:
 
 ```bash
-npx playwright test                                         # every project
+npm test                                                    # api + ui (with setup/teardown): every test once; what CI runs
 npx playwright test --project=smoke                         # quick "is it up" checks
 npx playwright test --grep "#0002"                          # one test, by its id
 npx playwright test tests/smoke/site-up.spec.ts --headed    # one file, in a visible browser
@@ -51,7 +51,9 @@ npm run lint                                                # ESLint (incl. JSDo
 npm run lint:fix
 ```
 
-`npm test`, `npm run test:smoke`, `npm run test:api`, `npm run test:ui` and `npm run report` are shortcuts for the same commands.
+`npm run test:smoke`, `npm run test:api`, `npm run test:ui` and `npm run report` are shortcuts for the same commands. Every `@smoke` test also carries `@api` or `@ui`, so a bare `npx playwright test` (all projects) runs those tests twice; use `npm test` instead.
+
+`workers` is capped at 2 in `playwright.config.ts`: the site is a shared public instance and answers "503 heavy load (queue full)" to more parallel traffic. Don't raise it.
 
 ## Rules for every test
 
@@ -59,9 +61,11 @@ npm run lint:fix
 - **Title:** `generateTestDescription({ id, description, tags })`. The `id` is the scenario's number from the plan: `#0012` in the plan is `id: 12` in code, and the title shows `#0012`. One plan scenario = one test, same id.
 - **Ids are unique numbers across the whole repo.** They say nothing about the area or kind of test. A new scenario takes the next number after the highest one in use (`npm run check:ids` prints it, and local plans may hold numbers not generated yet). `npm run lint` fails on a missing or duplicate id, and on a spec with no `@smoke`, `@api` or `@ui` tag.
 - **Tags say what kind of test it is:** from `TAGS`. Every test needs at least one of `@smoke`, `@api`, `@ui`, or it runs in no project. Add `@regression`, `@a11y` or `@slow` where they apply. Select by kind with `--grep @smoke`, never by an id range.
-- **No hardcoded URLs or data ids.** URLs come from `baseURL`/`config`; other shared values go in `config/index.ts`.
+- **No hardcoded URLs or data ids.** URLs come from `baseURL`/`config`; other shared values go in `config/index.ts`. Every email a test sends comes from commons' `uniqueEmail(config.testEmail)`, on the suite's own domain.
 - **Assert what the plan says should happen, not what you observe.** If the site disagrees with the plan, the test fails and the mismatch is reported. Never change an assertion to match a bug.
+- **A finding stays red.** A test that fails because the site disagrees with its docs is not marked `test.fail()`, `test.fixme()` or `test.skip()`; it fails in every run and is listed under Findings in the README.
 - **Soft assertions** (`expect.soft`) for property checks, so one run reports every failure. Hard `expect` only when later steps depend on the value.
+- **No serial mode.** Never `test.describe.serial` or `mode: "serial"`: one failure would skip the rest of the block. Tests that share data create it per worker in `beforeAll`.
 - **No fixed waits** (`waitForTimeout`) and no `networkidle`. Use web-first assertions, or `pollUntil` for eventually-consistent APIs.
 - **Shared public data.** Other people use the site too. Never assert on data you didn't create (e.g. "the cart is empty") unless the test set it up.
 - **Clean up what you create.** A test that creates data deletes it in a `finally` or `afterAll`.
@@ -88,7 +92,14 @@ npm run lint:fix
 
 ## Claude Code plugin
 
-`.claude/settings.json` enables `playwright-qa-agents` from the `benweese/playwright-ai-qa-agents` marketplace.
+`.claude/settings.json` names `playwright-qa-agents` from the `benweese/playwright-ai-qa-agents` marketplace. If the plugin's agents don't show up (in the VS Code extension it isn't installed by that alone), install it from a terminal and start a new session: plugins load at session start.
+
+```bash
+claude plugin marketplace add benweese/playwright-ai-qa-agents
+claude plugin install playwright-qa-agents@playwright-ai-qa-agents
+```
+
+Agents run in parallel must each use their own browser session, `npx playwright-cli -s=<name> ...`, and must delete any account they create while exploring.
 
 ```
 author-tests skill:  description → planner → YOU REVIEW → generator → run → (healer, UI only)

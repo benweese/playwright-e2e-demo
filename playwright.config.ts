@@ -14,6 +14,8 @@ import { config } from "./config";
 export default defineConfig({
 	testDir: "./tests",
 	fullyParallel: true,
+	// The site is a shared public instance; more parallel traffic gets "503 heavy load (queue full)".
+	workers: 2,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 1 : 0,
 	reporter: process.env.CI
