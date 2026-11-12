@@ -31,6 +31,9 @@ export default tseslint.config(
 			// Fixed sleeps hide timing bugs; use web-first assertions or pollUntil.
 			"playwright/no-wait-for-timeout": "error",
 			"playwright/no-networkidle": "error",
+			// A finding stays red, and a test never decides at runtime whether to run or what to check.
+			"playwright/no-skipped-test": "error",
+			"playwright/no-conditional-in-test": "error",
 			// Titles come from generateTestDescription, which builds them at runtime.
 			"playwright/valid-title": "off",
 			// Specs call page objects and helpers that assert internally.
@@ -50,6 +53,15 @@ export default tseslint.config(
 					selector:
 						"ImportDeclaration[source.value='@playwright/test'] ImportSpecifier[imported.name='test']",
 					message: "Import test from fixtures/test.ts, which blocks the site's ads (see CLAUDE.md)."
+				},
+				{
+					selector:
+						"CallExpression[callee.object.property.name='describe'][callee.property.name='configure'] Property[key.name='mode'][value.value='serial']",
+					message: "Tests must be independent; no serial mode."
+				},
+				{
+					selector: "MemberExpression[object.property.name='describe'][property.name='serial']",
+					message: "Tests must be independent; no serial mode."
 				}
 			]
 		}

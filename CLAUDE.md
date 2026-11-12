@@ -63,9 +63,9 @@ npm run lint:fix
 - **Tags say what kind of test it is:** from `TAGS`. Every test needs at least one of `@smoke`, `@api`, `@ui`, or it runs in no project. Add `@regression`, `@a11y` or `@slow` where they apply. Select by kind with `--grep @smoke`, never by an id range.
 - **No hardcoded URLs or data ids.** URLs come from `baseURL`/`config`; other shared values go in `config/index.ts`. Every email a test sends comes from commons' `uniqueEmail(config.testEmail)`, on the suite's own domain.
 - **Assert what the plan says should happen, not what you observe.** If the site disagrees with the plan, the test fails and the mismatch is reported. Never change an assertion to match a bug.
-- **A finding stays red.** A test that fails because the site disagrees with its docs is not marked `test.fail()`, `test.fixme()` or `test.skip()`; it fails in every run and is listed under Findings in the README.
+- **A finding stays red.** A test that fails because the site disagrees with its docs is not marked `test.fail()`, `test.fixme()` or `test.skip()`; it fails in every run and is listed under Findings in the README. Lint rejects skipped tests and conditionals in tests.
 - **Soft assertions** (`expect.soft`) for property checks, so one run reports every failure. Hard `expect` only when later steps depend on the value.
-- **No serial mode.** Never `test.describe.serial` or `mode: "serial"`: one failure would skip the rest of the block. Tests that share data create it per worker in `beforeAll`.
+- **No serial mode.** Never `test.describe.serial` or `mode: "serial"`: one failure would skip the rest of the block. Tests that share data create it per worker in `beforeAll`. Lint enforces it.
 - **No fixed waits** (`waitForTimeout`) and no `networkidle`. Use web-first assertions, or `pollUntil` for eventually-consistent APIs.
 - **Shared public data.** Other people use the site too. Never assert on data you didn't create (e.g. "the cart is empty") unless the test set it up.
 - **Clean up what you create.** A test that creates data deletes it in a `finally` or `afterAll`.
