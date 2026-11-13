@@ -7,6 +7,8 @@ A TypeScript Playwright API and UI test suite for [automationexercise.com](https
 
 The latest HTML report, from `main` and the nightly run, is published to this repo's GitHub Pages site at **[code.benweese.com/playwright-e2e-demo](https://code.benweese.com/playwright-e2e-demo/)**.
 
+By **[Ben Weese](https://benweese.com/)** · more projects at **[code.benweese.com](https://code.benweese.com/)**
+
 ## How the three repos fit together
 
 ```mermaid
