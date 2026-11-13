@@ -44,13 +44,15 @@ jobs:
                   name: playwright-report
                   path: playwright-report/
                   retention-days: 14
-            # Publish the report from main and the nightly run, including when tests fail: failing
-            # tests are the documented-vs-actual findings, and the report is where they are read.
+            # Publish the report from main (pushes and manual runs) and the nightly run, including when
+            # tests fail: failing tests are the documented-vs-actual findings, and the report is where
+            # they are read.
             - id: pages-report
               uses: actions/upload-pages-artifact@v5
               if: >-
                   ${{ !cancelled() && steps.playwright.outcome != 'skipped' &&
-                  (github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) }}
+                  (github.event_name == 'schedule' ||
+                  ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main')) }}
               with:
                   path: playwright-report/
 
