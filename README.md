@@ -1,11 +1,11 @@
 # playwright-e2e-demo
 
 [![Tests](https://github.com/benweese/playwright-e2e-demo/actions/workflows/tests.yml/badge.svg)](https://github.com/benweese/playwright-e2e-demo/actions/workflows/tests.yml)
-[![Report](https://img.shields.io/badge/report-GitHub%20Pages-blue)](https://benweese.github.io/playwright-e2e-demo/)
+[![Report](https://img.shields.io/badge/report-GitHub%20Pages-blue)](https://code.benweese.com/playwright-e2e-demo/)
 
 A TypeScript Playwright API and UI test suite for [automationexercise.com](https://automationexercise.com), a public practice shop. It shows how I structure a test repo: a shared framework installed as a versioned dependency, page objects and API clients, strict schema checks, self-cleaning test data, accessibility scans, and AI agents that write tests from a plan a human reviews.
 
-The latest HTML report, from `main` and the nightly run, is published to this repo's GitHub Pages site at **[benweese.github.io/playwright-e2e-demo](https://benweese.github.io/playwright-e2e-demo/)**.
+The latest HTML report, from `main` and the nightly run, is published to this repo's GitHub Pages site at **[code.benweese.com/playwright-e2e-demo](https://code.benweese.com/playwright-e2e-demo/)**.
 
 ## How the three repos fit together
 
