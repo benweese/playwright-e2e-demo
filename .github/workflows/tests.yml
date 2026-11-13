@@ -46,13 +46,16 @@ jobs:
                   retention-days: 14
             # Publish the report from main (pushes and manual runs) and the nightly run, including when
             # tests fail: failing tests are the documented-vs-actual findings, and the report is where
-            # they are read.
-            - id: pages-report
-              uses: actions/upload-pages-artifact@v5
+            # they are read. The published copy gets a bar linking back to benweese.com.
+            - id: publish
               if: >-
                   ${{ !cancelled() && steps.playwright.outcome != 'skipped' &&
                   (github.event_name == 'schedule' ||
                   ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main')) }}
+              run: node scripts/link-report.mjs playwright-report
+            - id: pages-report
+              uses: actions/upload-pages-artifact@v5
+              if: ${{ !cancelled() && steps.publish.outcome == 'success' }}
               with:
                   path: playwright-report/
 
