@@ -5,7 +5,7 @@
 
 A TypeScript Playwright API and UI test suite for [automationexercise.com](https://automationexercise.com), a public practice shop. It shows how I structure a test repo: a shared framework installed as a versioned dependency, page objects and API clients, strict schema checks, self-cleaning test data, accessibility scans, and AI agents that write tests from a plan a human reviews.
 
-The latest HTML report, from `main` and the nightly run, is published to this repo's GitHub Pages site at **[code.benweese.com/playwright-e2e-demo](https://code.benweese.com/playwright-e2e-demo/)**.
+The latest HTML report, from the last run on `main`, is published to this repo's GitHub Pages site at **[code.benweese.com/playwright-e2e-demo](https://code.benweese.com/playwright-e2e-demo/)**.
 
 By **[Ben Weese](https://benweese.com/)** · more projects at **[code.benweese.com](https://code.benweese.com/)**
 
@@ -156,7 +156,7 @@ For local debugging, copy `.env.example` to `.env` and set:
 | **Typed end to end**                 | Strict TypeScript throughout. API clients name each response body's type once ([`api/types.ts`](api/types.ts)), and Playwright's typed `APIResponse<T>` carries it into every assertion. Lint runs `tsc`, so a type error fails CI.                                                                                                                                       |
 | **Strict schemas**                   | API specs validate every response, errors included, against schemas in [`schemas/`](schemas/): generated from real responses, reviewed, and set to `additionalProperties: false`, so an unannounced API change fails a test. Date fields are checked on every validation.                                                                                                 |
 | **Plans as test cases**              | Each feature starts as a written plan with acceptance criteria, reviewed before any code is written. Every scenario has an id, unique across the repo (`#0042`), that appears in its test title. Tags (`@smoke`, `@api`, `@ui`, `@a11y`), not ids, say what kind of test it is, and lint fails on a missing or duplicate id.                                              |
-| **Published report**                 | CI deploys the HTML report to GitHub Pages from `main` and the nightly run, failures included, from a job that alone has Pages write access.                                                                                                                                                                                                                              |
+| **Published report**                 | CI deploys the HTML report to GitHub Pages on every push to `main`, failures included, from a job that alone has Pages write access.                                                                                                                                                                                                                                      |
 | **Documented code**                  | Every client method, page object method, locator factory, helper and payload builder has JSDoc, and lint fails on missing or mismatched docs.                                                                                                                                                                                                                             |
 
 ## Layout
@@ -205,7 +205,7 @@ npm run lint:fix
 npm run format    # Prettier
 ```
 
-CI ([`.github/workflows/tests.yml`](.github/workflows/tests.yml)) runs lint, the Prettier check and the api and ui projects on each push and pull request, and daily to catch changes on the live site. The HTML report is uploaded as an artifact on every run, and deployed to GitHub Pages from `main` and the daily run.
+CI ([`.github/workflows/tests.yml`](.github/workflows/tests.yml)) runs lint, the Prettier check and the api and ui projects on each push and pull request (there is no scheduled run). The HTML report is uploaded as an artifact on every run, and deployed to GitHub Pages from `main`.
 
 **Dependencies:** Dependabot opens weekly update pull requests. A few versions are held on purpose, and [`CLAUDE.md`](CLAUDE.md#dependencies) explains each:
 
