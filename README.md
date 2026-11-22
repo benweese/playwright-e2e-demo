@@ -208,7 +208,7 @@ npm run lint:fix
 npm run format    # Prettier
 ```
 
-CI ([`.github/workflows/tests.yml`](.github/workflows/tests.yml)) runs lint, the Prettier check and the api and ui projects on each push and pull request (there is no scheduled run). The HTML report is uploaded as an artifact on every run, and deployed to GitHub Pages from `main`.
+CI ([`.github/workflows/tests.yml`](.github/workflows/tests.yml)) runs two jobs on each push and pull request (there is no scheduled run): `lint` (ESLint, `tsc`, the test-id check and Prettier), which is the **required check** for merging a PR, and `test` (the api and ui projects), which reports but doesn't block, because the suite is red on purpose. The HTML report is uploaded as an artifact on every run, and deployed to GitHub Pages from `main`.
 
 **Dependencies:** Dependabot opens weekly update pull requests. A few versions are held on purpose, and [`CLAUDE.md`](CLAUDE.md#dependencies) explains each:
 
