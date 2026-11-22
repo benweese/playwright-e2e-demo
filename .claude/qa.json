@@ -1,0 +1,7 @@
+{
+	"version": 1,
+	"hooks": {
+		"lintAfterEdit": true,
+		"autoReview": true
+	}
+}

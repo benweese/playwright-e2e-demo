@@ -10,4 +10,5 @@ blob-report/
 error-*.png
 error-*.log
 .claude/settings.local.json
+.claude/qa/
 .DS_Store

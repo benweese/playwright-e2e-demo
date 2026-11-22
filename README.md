@@ -14,7 +14,7 @@ By **[Ben Weese](https://benweese.com/)** · more projects at **[code.benweese.c
 ```mermaid
 flowchart LR
     commons["<b>playwright-test-commons</b><br/>ApiBase · getBody · validateJsonSchema<br/>date checks · BasePage · axe scans · uniqueEmail"]
-    agents["<b>playwright-ai-qa-agents</b><br/>Claude Code plugin:<br/>mapper · planners · generators · healer"]
+    agents["<b>claude-plugins</b> · qa plugin<br/>Claude Code agents:<br/>mapper · planners · generators · healer · reviewer"]
     demo["<b>playwright-e2e-demo</b> (this repo)<br/>clients · page objects · specs · schemas"]
     site[("automationexercise.com<br/>UI + REST API")]
     commons -- "npm, pinned git tag" --> demo
@@ -25,7 +25,7 @@ flowchart LR
 | Repo                                                                           | Role                                                                          |
 | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
 | [playwright-test-commons](https://github.com/benweese/playwright-test-commons) | Site-agnostic framework code, unit tested, released as git tags (v0.7.0 here) |
-| [playwright-ai-qa-agents](https://github.com/benweese/playwright-ai-qa-agents) | Claude Code agents that map pages, plan, generate, run and heal tests         |
+| [claude-plugins](https://github.com/benweese/claude-plugins) (`qa` plugin)     | Claude Code agents that map pages, plan, generate, run, heal and review tests |
 | **playwright-e2e-demo**                                                        | This suite: everything specific to automationexercise.com                     |
 
 ## Status
@@ -76,7 +76,7 @@ Seen while mapping the pages. The site's docs don't say what should happen in th
 
 ## How these tests were written
 
-Every test here was written by the agents in [playwright-ai-qa-agents](https://github.com/benweese/playwright-ai-qa-agents), with me reviewing at two points:
+Every test here was written by the agents in the [`qa` plugin](https://github.com/benweese/claude-plugins/tree/main/plugins/qa) of [claude-plugins](https://github.com/benweese/claude-plugins) (called playwright-ai-qa-agents when most of these tests were written), with me reviewing at two points:
 
 ```
 map pages → plan → human review → generate → run → heal → human review
@@ -175,7 +175,8 @@ tests/ui/                locators, pages, specs and data for @ui tests
 plans/                   the reviewed test plans: acceptance criteria and scenarios behind every test id
 docs/pages/              page references written by the page-mapper agent
 .playwright/             playwright-cli settings, used by the agents
-.claude/settings.json    names the playwright-qa-agents plugin
+.claude/settings.json    enables the qa, workflow and docs plugins (benweese marketplace)
+.claude/qa.json          turns on qa's lint-after-edit and auto-review hooks
 ```
 
 [`CLAUDE.md`](CLAUDE.md) holds the rules that apply everywhere, for people and the AI agents alike. Folders with their own rules have a `CLAUDE.md` of their own ([`api/`](api/CLAUDE.md), [`tests/api/`](tests/api/CLAUDE.md), [`schemas/`](schemas/CLAUDE.md), [`tests/ui/`](tests/ui/CLAUDE.md), [`tests/setup/`](tests/setup/CLAUDE.md), [`plans/`](plans/CLAUDE.md)). Claude Code loads a folder's file only when it works in that folder, so every session starts with less to read.
@@ -185,14 +186,16 @@ docs/pages/              page references written by the page-mapper agent
 `.claude/settings.json` names the plugin, but that may not install it: in the VS Code extension it didn't load until it was installed from a terminal, and `/plugin` isn't available there. From a terminal:
 
 ```bash
-claude plugin marketplace add benweese/playwright-ai-qa-agents
-claude plugin install playwright-qa-agents@playwright-ai-qa-agents
+claude plugin marketplace add benweese/claude-plugins
+claude plugin install qa@benweese
+claude plugin install workflow@benweese
+claude plugin install docs@benweese
 ```
 
 Plugins load when a session starts, so start a new Claude Code session (or reload the editor) after installing. Then:
 
 ```
-/playwright-qa-agents:author-tests the product search page and POST /api/searchProduct
+/qa:author-tests the product search page and POST /api/searchProduct
 ```
 
 The agent maps the page and drafts a plan in `plans/`: acceptance criteria first, then the scenarios that cover them. Then it **stops for review**. Once the plan is approved, it generates the spec, runs it, and repairs UI locators with a three-attempt budget. If the site disagrees with the plan, the test stays failing. It doesn't rewrite the assertion to match.
