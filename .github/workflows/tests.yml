@@ -14,6 +14,22 @@ permissions:
     contents: read
 
 jobs:
+    # The required check for PRs (repo ruleset): ESLint, tsc, the test-id check and Prettier. It can pass.
+    # The test job below is red on purpose (the README's Findings), so it reports but doesn't block merges.
+    lint:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-node@v7
+              with:
+                  node-version-file: .nvmrc
+                  cache: npm
+            - run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/
+            - run: npm ci
+            - run: npm run lint
+            - run: npx prettier --check .
+
     test:
         runs-on: ubuntu-latest
         timeout-minutes: 20
@@ -31,8 +47,6 @@ jobs:
             - run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/
             - run: npm ci
             - run: npx playwright install --with-deps chromium
-            - run: npm run lint
-            - run: npx prettier --check .
             # api + ui (with setup and teardown) runs every test once; @smoke tests also carry @api or @ui.
             - id: playwright
               run: npx playwright test --project=api --project=ui
