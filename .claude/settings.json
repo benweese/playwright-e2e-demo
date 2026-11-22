@@ -1,11 +1,16 @@
 {
 	"extraKnownMarketplaces": {
-		"playwright-ai-qa-agents": {
-			"source": { "source": "github", "repo": "benweese/playwright-ai-qa-agents" }
+		"benweese": {
+			"source": {
+				"source": "github",
+				"repo": "benweese/claude-plugins"
+			}
 		}
 	},
 	"enabledPlugins": {
-		"playwright-qa-agents@playwright-ai-qa-agents": true
+		"qa@benweese": true,
+		"workflow@benweese": true,
+		"docs@benweese": true
 	},
 	"permissions": {
 		"allow": [

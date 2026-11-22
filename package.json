@@ -2,7 +2,7 @@
 	"name": "playwright-e2e-demo",
 	"private": true,
 	"type": "module",
-	"description": "Playwright API and UI test suite for automationexercise.com, built on playwright-test-commons and written with the playwright-qa-agents Claude Code plugin.",
+	"description": "Playwright API and UI test suite for automationexercise.com, built on playwright-test-commons and written with the qa Claude Code plugin (benweese/claude-plugins).",
 	"author": "Ben Weese",
 	"license": "MIT",
 	"engines": {

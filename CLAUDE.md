@@ -16,7 +16,7 @@ This file holds what applies everywhere. Each folder with its own rules has a `C
 The suite is built on two other repos:
 
 - **[playwright-test-commons](https://github.com/benweese/playwright-test-commons)** (`@benweese/playwright-test-commons`): `ApiBase`, `getBody`, `validateJsonSchema`, the date helpers, `BasePage`, `expectNoA11yViolations`, `uniqueEmail`, `generateTestDescription`, `TAGS`, with type definitions. A helper any site could use goes there, not in this repo. Installed from a git tag (`github:benweese/playwright-test-commons#v0.7.0`). Change it in that repo, tag a new version and install that tag here; never patch `node_modules`.
-- **[playwright-ai-qa-agents](https://github.com/benweese/playwright-ai-qa-agents)**: the `playwright-qa-agents` Claude Code plugin that plans, writes, runs and heals tests here.
+- **[claude-plugins](https://github.com/benweese/claude-plugins)** (the `benweese` marketplace): the [`qa`](https://github.com/benweese/claude-plugins/tree/main/plugins/qa) Claude Code plugin plans, writes, runs, heals and reviews tests here; `workflow` (lint check) and `docs` (docs sweep) come from the same marketplace.
 
 ## Layout
 
@@ -92,12 +92,16 @@ npm run lint:fix
 
 ## Claude Code plugin
 
-`.claude/settings.json` names `playwright-qa-agents` from the `benweese/playwright-ai-qa-agents` marketplace. If the plugin's agents don't show up (in the VS Code extension it isn't installed by that alone), install it from a terminal and start a new session: plugins load at session start.
+`.claude/settings.json` enables `qa`, `workflow` and `docs` from the `benweese` marketplace (`benweese/claude-plugins`). If they don't show up (in the VS Code extension they aren't installed by that alone), install them from a terminal and start a new session: plugins load at session start.
 
 ```bash
-claude plugin marketplace add benweese/playwright-ai-qa-agents
-claude plugin install playwright-qa-agents@playwright-ai-qa-agents
+claude plugin marketplace add benweese/claude-plugins
+claude plugin install qa@benweese
+claude plugin install workflow@benweese
+claude plugin install docs@benweese
 ```
+
+`.claude/qa.json` turns on two qa hooks for this repo: lint + `playwright test --list` after a test file is edited, and an automatic `/qa:review-tests` after a green run (at most twice per task). The original request for each task is saved in `.claude/qa/requirements.md` (gitignored).
 
 Agents run in parallel must each use their own browser session, `npx playwright-cli -s=<name> ...`, and must delete any account they create while exploring.
 
@@ -105,11 +109,12 @@ Agents run in parallel must each use their own browser session, `npx playwright-
 author-tests skill:  description → planner → YOU REVIEW → generator → run → (healer, UI only)
 ```
 
-- `/playwright-qa-agents:author-tests <feature description, URL, or path to a requirements file>`
-- `/playwright-qa-agents:run-spec <spec path | project | test id>`
-- `/playwright-qa-agents:check [fix]` – lint
-- `/playwright-qa-agents:bug-report <description>` – writes a bug report to `bugs/`
-- `/playwright-qa-agents:update-docs [path]` – brings READMEs, `CLAUDE.md` files and JSDoc up to date
+- `/qa:author-tests <feature description, URL, or path to a requirements file>`
+- `/qa:review-tests` – checks the tests against the saved original request (report only)
+- `/qa:run-spec <spec path | project | test id>`
+- `/qa:bug-report <description>` – writes a bug report to `bugs/`
+- `/workflow:check [fix]` – lint
+- `/docs sweep [path]` – brings READMEs, `CLAUDE.md` files and JSDoc up to date
 
 ## Git
 
